@@ -1,0 +1,5 @@
+/home/opthq/vector-v4/garmin2osmand-v3/build/CMakeFiles/garmin2osmand.dir
+/home/opthq/vector-v4/garmin2osmand-v3/build/CMakeFiles/garmin2osm.dir
+/home/opthq/vector-v4/garmin2osmand-v3/build/CMakeFiles/test.dir
+/home/opthq/vector-v4/garmin2osmand-v3/build/CMakeFiles/edit_cache.dir
+/home/opthq/vector-v4/garmin2osmand-v3/build/CMakeFiles/rebuild_cache.dir
