@@ -17,9 +17,9 @@ std::string code(int t){char b[20];std::snprintf(b,sizeof(b),"0x%x",t);return b;
 std::string hexColor(U32 c){char b[16];std::snprintf(b,sizeof(b),"#%02x%02x%02x",(c>>24)&255,(c>>16)&255,(c>>8)&255);return b;}
 void tag(Tags&ts,std::string k,std::string v){if(!v.empty())ts.emplace_back(std::move(k),std::move(v));}
 std::string makeTags(const Tags&tags){std::string out;for(auto&[k,v]:tags)out+="<tag k=\""+xmlEscape(k)+"\" v=\""+xmlEscape(v)+"\"/>";return out;}
-struct Options{std::string input,output,temp,poiOverrides,poiTypesOut,poiManifest,iconsDir,poiAdditions,poiNameFixes;BBox bbox;bool clip=false,inspect=false,contours=false,allLevels=false,keepTemp=false;int limitMaps=0,jobs=1,examples=5;};
+struct Options{std::string input,output,temp,poiOverrides,poiTypesOut,poiManifest,iconsDir,poiAdditions,poiNameFixes,poiLabels;BBox bbox;bool clip=false,inspect=false,contours=false,allLevels=false,keepTemp=false;int limitMaps=0,jobs=1,examples=5;};
 Options parse(int argc,char**argv){Options o;for(int i=1;i<argc;i++){std::string a=argv[i];auto next=[&](){if(i+1>=argc)fail("Missing value for "+a);return std::string(argv[++i]);};
- if(a=="--help"||a=="-h"){std::cout<<"garmin2osm v0.6 --input MAP.img [--output map.osm] [--inspect] [--poi-overrides rules.csv] [--poi-name-fixes fixes.csv] [--poi-additions additions.csv] [--poi-types-out unique-poi-types.csv] [--poi-manifest source-pois.csv] [--poi-examples N] [--icons-dir path] [--jobs N] [--bbox W,S,E,N] [--contours] [--keep-temp]\n";std::exit(0);}else if(a=="--input")o.input=next();else if(a=="--output")o.output=next();else if(a=="--temp")o.temp=next();else if(a=="--inspect")o.inspect=true;else if(a=="--contours")o.contours=true;else if(a=="--all-levels")o.allLevels=true;else if(a=="--keep-temp")o.keepTemp=true;else if(a=="--limit-maps")o.limitMaps=std::stoi(next());else if(a=="--poi-overrides")o.poiOverrides=next();else if(a=="--poi-name-fixes")o.poiNameFixes=next();else if(a=="--poi-additions")o.poiAdditions=next();else if(a=="--poi-types-out")o.poiTypesOut=next();else if(a=="--poi-manifest")o.poiManifest=next();else if(a=="--icons-dir")o.iconsDir=next();else if(a=="--poi-examples")o.examples=std::stoi(next());else if(a=="--jobs")o.jobs=std::stoi(next());else if(a=="--bbox"){std::string s=next();std::replace(s.begin(),s.end(),',',' ');double w,ss,e,n;if(std::sscanf(s.c_str(),"%lf%lf%lf%lf",&w,&ss,&e,&n)!=4)fail("Bad bbox");o.bbox={w,ss,e,n};o.clip=true;}else fail("Unknown argument: "+a);}
+ if(a=="--help"||a=="-h"){std::cout<<"garmin2osm v0.6 --input MAP.img [--output map.osm] [--inspect] [--poi-overrides rules.csv] [--poi-name-fixes fixes.csv] [--poi-labels labels.csv] [--poi-additions additions.csv] [--poi-types-out unique-poi-types.csv] [--poi-manifest source-pois.csv] [--poi-examples N] [--icons-dir path] [--jobs N] [--bbox W,S,E,N] [--contours] [--keep-temp]\n";std::exit(0);}else if(a=="--input")o.input=next();else if(a=="--output")o.output=next();else if(a=="--temp")o.temp=next();else if(a=="--inspect")o.inspect=true;else if(a=="--contours")o.contours=true;else if(a=="--all-levels")o.allLevels=true;else if(a=="--keep-temp")o.keepTemp=true;else if(a=="--limit-maps")o.limitMaps=std::stoi(next());else if(a=="--poi-overrides")o.poiOverrides=next();else if(a=="--poi-name-fixes")o.poiNameFixes=next();else if(a=="--poi-labels")o.poiLabels=next();else if(a=="--poi-additions")o.poiAdditions=next();else if(a=="--poi-types-out")o.poiTypesOut=next();else if(a=="--poi-manifest")o.poiManifest=next();else if(a=="--icons-dir")o.iconsDir=next();else if(a=="--poi-examples")o.examples=std::stoi(next());else if(a=="--jobs")o.jobs=std::stoi(next());else if(a=="--bbox"){std::string s=next();std::replace(s.begin(),s.end(),',',' ');double w,ss,e,n;if(std::sscanf(s.c_str(),"%lf%lf%lf%lf",&w,&ss,&e,&n)!=4)fail("Bad bbox");o.bbox={w,ss,e,n};o.clip=true;}else fail("Unknown argument: "+a);}
  if(o.input.empty())fail("--input required");if(o.output.empty()&&!o.inspect&&o.poiTypesOut.empty()&&o.poiManifest.empty()&&o.iconsDir.empty())fail("--output, --inspect or an inventory output required");if(!o.poiAdditions.empty()&&o.output.empty())fail("--poi-additions requires --output");if(o.jobs<1||o.jobs>64)fail("--jobs must be 1..64");if(o.examples<1||o.examples>20)fail("--poi-examples must be 1..20");if(o.clip&&(!o.bbox.valid()||o.bbox.w< -180||o.bbox.e>180||o.bbox.s< -90||o.bbox.n>90))fail("Invalid bbox");return o;}
 
 Tags lineTags(int t,bool ext,const std::string&name){Tags v;tag(v,"garmin:type",code(t));tag(v,"garmin:feature",ext?"extended_polyline":"polyline");tag(v,"name",name);
@@ -236,6 +236,45 @@ std::string resolveNameFix(const std::string&map,int type,double lat,double lon,
  return it==nameFixes.end()?old:it->second;
 }
 
+// Display names for otherwise anonymous Garmin POIs. Stable across serial/parallel
+// runs and repeated exports; does not depend on output node IDs or iteration order.
+std::unordered_map<int,std::string> fallbackLabels;
+void loadFallbackLabels(const std::string&filename){
+ if(filename.empty())return;
+ std::ifstream in(filename);if(!in)fail("Cannot open fallback POI labels: "+filename);
+ std::string line;size_t n=0;
+ while(std::getline(in,line)){
+  ++n;if(!line.empty()&&line.back()=='\r')line.pop_back();
+  if(line.empty()||line[0]=='#')continue;
+  auto cols=csvParse(line);
+  if(cols.size()<2)fail("POI labels require code,label_bg columns at line "+std::to_string(n));
+  if(cols[0]=="code")continue;
+  int t=parseType(cols[0]);
+  if(cols[1].empty())continue;
+  fallbackLabels[t]=cols[1];
+ }
+ std::cerr<<"Loaded "<<fallbackLabels.size()<<" POI fallback descriptions\n";
+}
+std::string compactBase36(uint64_t x){
+ constexpr char digits[]="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+ std::string v;
+ do{v.push_back(digits[x%36]);x/=36;}while(x);
+ std::reverse(v.begin(),v.end());return v;
+}
+std::string fallbackPoiName(const std::string&map,int type,double lat,double lon){
+ auto it=fallbackLabels.find(type);
+ std::string desc=it==fallbackLabels.end()?("Garmin обект "+code(type)):it->second;
+ std::ostringstream input;
+ input<<map<<'|'<<code(type)<<'|'<<int64_t(std::llround(lat*1e7))<<'|'<<int64_t(std::llround(lon*1e7));
+ uint64_t h=14695981039346656037ULL;
+ for(unsigned char c:input.str()){h^=c;h*=1099511628211ULL;}
+ // 11 base36 characters retain ~57 bits. Collision risk for a full map is tiny,
+ // but coordinates + mapset are also present in the original data for disambiguation.
+ auto suffix=compactBase36(h);
+ if(suffix.size()>11)suffix=suffix.substr(suffix.size()-11);
+ return desc+" - "+suffix;
+}
+
 std::optional<Tags> configuredPoi(int type,const std::string&name){
  Tags result=poiTags(type,name);
  auto hit=overrides.find(type);
@@ -361,13 +400,15 @@ struct Stats{std::map<std::pair<int,int>,uint64_t> byType;uint64_t lines=0,areas
 void processMap(const Map&m,Store*db,Stats&stats,const Options&o,std::ostream*poiManifest=nullptr){
  const auto&r=m.sections.at("RGN");
  auto recordPoi=[&](int typ,double lon,double lat,const std::string&rawName,bool extended){
-    const std::string name=resolveNameFix(m.name,typ,lat,lon,rawName);
+    const std::string originalName=resolveNameFix(m.name,typ,lat,lon,rawName);
+    const bool generatedName=originalName.empty();
+    const std::string name=generatedName?fallbackPoiName(m.name,typ,lat,lon):originalName;
     stats.byType[{3,typ}]++;stats.points++;
     auto&info=stats.poiTypes[typ];info.count++;if(!name.empty())info.named++;
     addSample(info,{m.name,name,lat,lon},o.examples);
     auto tags=configuredPoi(typ,name);
     if(poiManifest)(*poiManifest)<<csvQuote(m.name)<<","<<csvQuote(extended?"extended":"classic")<<","<<csvQuote(code(typ))<<","<<std::fixed<<std::setprecision(7)<<Store::quant(lat)/10000000.<<","<<Store::quant(lon)/10000000.<<","<<csvQuote(name)<<"\n";
-    if(tags&&db){tag(*tags,"garmin:mapset",m.name);db->addPoi(lon,lat,*tags);}
+    if(tags&&db){if(generatedName)tag(*tags,"bgm:generated_name","yes");tag(*tags,"garmin:mapset",m.name);db->addPoi(lon,lat,*tags);}
  };
  int finest=-1,routeBpc=-1;uint64_t largest=0;std::map<int,uint64_t> extBytes;
  for(const auto&lev:m.levels)finest=std::max(finest,lev.bits);
@@ -496,7 +537,7 @@ void injectManualPois(const std::string&file,const std::string&dbPath){
 }
 
 int run(int argc,char**argv){
- auto o=parse(argc,argv);loadOverrides(o.poiOverrides);loadNameFixes(o.poiNameFixes);MapSet set(o.input);
+ auto o=parse(argc,argv);loadOverrides(o.poiOverrides);loadNameFixes(o.poiNameFixes);loadFallbackLabels(o.poiLabels);MapSet set(o.input);
  for(const auto&[n,parts]:set.parts){auto it=parts.find("TYP");if(it!=parts.end()){gStyles.load(it->second);break;}}
  std::cerr<<"Maps="<<set.maps.size()<<" TYP icons="<<gStyles.pointStyles<<" jobs="<<o.jobs<<"\n";
  saveIcons(o.iconsDir);

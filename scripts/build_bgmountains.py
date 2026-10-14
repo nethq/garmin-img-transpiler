@@ -119,7 +119,7 @@ def make_configs(poi_base,render_base,catalog,folder,threshold,frequent_zoom=15,
        'types_with_extracted_icon':sum(r['has_typ_icon']=='yes' for r in catalog),
        'poi_base_sha256':hashlib.sha256(Path(poi_base).read_bytes()).hexdigest(),
        'rendering_base_sha256':hashlib.sha256(Path(render_base).read_bytes()).hexdigest(),
-       'note':'All Garmin hex POI types indexed; high-frequency raw types inserted into OBF map index from selected frequent zoom; low-frequency from selected rare zoom. Rendering exact Garmin icon PNGs requires installing compatible icons/style in OsmAnd, not merely compiling an OBF.'
+       'note':'Local-only compat data; synthetic information icons are not truth about an informational board. All Garmin hex POI types indexed; high-frequency raw types inserted into OBF map index from selected frequent zoom; low-frequency from selected rare zoom. Rendering exact Garmin icon PNGs requires installing compatible icons/style in OsmAnd, not merely compiling an OBF.'
     }
     (folder/'type-index-summary.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     return pa,rp,summary
@@ -213,6 +213,7 @@ def main():
     p.add_argument('--icons-config',default=str(ROOT/'config/osmand-icons.csv'),help='OsmAnd built-in icon choices for custom addon style')
     p.add_argument('--poi-overrides',default=str(ROOT/'config/poi-overrides-all-types.csv'))
     p.add_argument('--poi-name-fixes',default=str(ROOT/'config/poi-name-fixes.csv'))
+    p.add_argument('--poi-labels',default=str(ROOT/'config/poi-labels-bg.csv'),help='Bulgarian prefixes for stable generated names on nameless Garmin POIs')
     p.add_argument('--poi-additions',default=str(ROOT/'config/poi-additions.csv'))
     p.add_argument('--poi-base',help='Official upstream poi_types.xml; if omitted use cache/download')
     p.add_argument('--rendering-base',help='Official upstream rendering_types.xml; if omitted use cache/download')
@@ -238,7 +239,7 @@ def main():
             call(['cmake','--build',ROOT/'build','--config','Release','-j','2'])
         osm=dest/'BGMountains.osm'
         cmd=[binary,'--input',Path(args.img).resolve(),'--output',osm,'--poi-overrides',Path(args.poi_overrides).resolve(),
-             '--poi-name-fixes',Path(args.poi_name_fixes).resolve(),'--poi-additions',Path(args.poi_additions).resolve(),
+             '--poi-name-fixes',Path(args.poi_name_fixes).resolve(),'--poi-labels',Path(args.poi_labels).resolve(),'--poi-additions',Path(args.poi_additions).resolve(),
              '--poi-manifest',dest/'source-pois.csv','--poi-types-out',dest/'poi-types.csv','--jobs',args.jobs]
         if args.bbox:cmd+=['--bbox',args.bbox]
         call(cmd,log=dest/'converter.log')
@@ -251,6 +252,9 @@ def main():
         osm=Path(args.osm).expanduser().resolve()
         if not osm.is_file():p.error('OSM file missing: '+str(osm))
         catalog=Path(args.catalog).expanduser().resolve() if args.catalog else ROOT/'data'/'BGMountains-unique-poi-types.csv'
+    call([sys.executable,ROOT/'tools/audit_icon_coverage.py', '--osm',osm, '--catalog',catalog,
+          '--csv',dest/'poi-coverage.csv','--json',dest/'poi-coverage.json'],
+          log=dest/'poi-coverage.log')
     rows=catalog_rows(catalog)
     nationwide={r['code']:r['count'] for r in catalog_rows(args.frequency_catalog)} if args.frequency_catalog else {}
     for row in rows:

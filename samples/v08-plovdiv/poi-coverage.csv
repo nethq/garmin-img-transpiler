@@ -1,0 +1,25 @@
+code,osm_poi_count,nationwide_type_count,icon_strategy,synthetic_count,generated_name_count,legend,review_status,example_lat,example_lon,example_name,example_osm_tags,osm_coord_link
+0x6414,11,11,native-osm,0,9,,,42.0299792,24.6593070,Овчарска чешма,amenity=drinking_water,https://www.openstreetmap.org/?mlat=42.0299792&mlon=24.6593070#map=18/42.0299792/24.6593070
+0x6500,9,9,synthetic,9,7,,,42.0471239,24.6401882,Вода - Каптаж - 6XYYYJO443X,tourism=information|man_made=water_intake,https://www.openstreetmap.org/?mlat=42.0471239&mlon=24.6401882#map=18/42.0471239/24.6401882
+0x640b,4,4,native-osm,0,0,,,42.0467591,24.6438789,Св. Димитър,amenity=place_of_worship,https://www.openstreetmap.org/?mlat=42.0467591&mlon=24.6438789#map=18/42.0467591/24.6438789
+0x6600,4,4,synthetic,4,0,,,42.0236921,24.6458101,758,tourism=information,https://www.openstreetmap.org/?mlat=42.0236921&mlon=24.6458101#map=18/42.0236921/24.6458101
+0x6613,4,4,synthetic,4,4,,,42.0226622,24.6431494,Водопад - X905W9SL44C,tourism=information|waterway=waterfall,https://www.openstreetmap.org/?mlat=42.0226622&mlon=24.6431494#map=18/42.0226622/24.6431494
+0x6602,3,3,native-osm,0,3,,,42.0303869,24.6514106,Панорама - Гледка - IHT1SHKTVIH,tourism=viewpoint,https://www.openstreetmap.org/?mlat=42.0303869&mlon=24.6514106#map=18/42.0303869/24.6514106
+0x2800,2,2,synthetic,2,0,,,42.0296359,24.6555948,Момина скала,tourism=information|place=locality,https://www.openstreetmap.org/?mlat=42.0296359&mlon=24.6555948#map=18/42.0296359/24.6555948
+0x2b00,2,2,native-osm,0,0,,,42.0442057,24.6486855,х-л Водопада,tourism=hotel,https://www.openstreetmap.org/?mlat=42.0442057&mlon=24.6486855#map=18/42.0442057/24.6486855
+0x6502,2,2,synthetic,2,0,,,42.0416737,24.6499300,Брод,tourism=information,https://www.openstreetmap.org/?mlat=42.0416737&mlon=24.6499300#map=18/42.0416737/24.6499300
+0x6511,2,2,native-osm,0,1,,,42.0299363,24.6593714,Вода - Извор - 64XT1XE2OB5,natural=spring,https://www.openstreetmap.org/?mlat=42.0299363&mlon=24.6593714#map=18/42.0299363/24.6593714
+0x2c05,1,1,native-osm,0,0,,,42.0485187,24.6484709,Основно училище,amenity=school,https://www.openstreetmap.org/?mlat=42.0485187&mlon=24.6484709#map=18/42.0485187/24.6484709
+0x2c08,1,1,native-osm,0,0,,,42.0448923,24.6473336,Детска площадка,leisure=horse_riding,https://www.openstreetmap.org/?mlat=42.0448923&mlon=24.6473336#map=18/42.0448923/24.6473336
+0x3003,1,1,native-osm,0,0,,,42.0457292,24.6463251,Кметство,amenity=townhall,https://www.openstreetmap.org/?mlat=42.0457292&mlon=24.6463251#map=18/42.0457292/24.6463251
+0x3007,1,1,synthetic,1,0,,,42.0496774,24.6426129,Пречиствателна станция,tourism=information|man_made=pumping_station,https://www.openstreetmap.org/?mlat=42.0496774&mlon=24.6426129#map=18/42.0496774/24.6426129
+0x6402,1,1,synthetic,1,1,,,42.0302367,24.6557236,Сграда - 245G2CMJB5W,tourism=information|building=yes,https://www.openstreetmap.org/?mlat=42.0302367&mlon=24.6557236#map=18/42.0302367/24.6557236
+0x6403,1,1,synthetic,1,0,,,42.0300436,24.6541786,Кръст,tourism=information|landuse=cemetery,https://www.openstreetmap.org/?mlat=42.0300436&mlon=24.6541786#map=18/42.0300436/24.6541786
+0x6404,1,1,native-osm,0,0,,,42.0466948,24.6454024,„Св. Харалампий“,amenity=place_of_worship,https://www.openstreetmap.org/?mlat=42.0466948&mlon=24.6454024#map=18/42.0466948/24.6454024
+0x6407,1,1,native-osm,0,0,,,42.0327902,24.6572471,Маси и пейки,tourism=picnic_site,https://www.openstreetmap.org/?mlat=42.0327902&mlon=24.6572471#map=18/42.0327902/24.6572471
+0x6409,1,1,native-osm,0,1,,,42.0468235,24.6437931,Паметник - 0848D3PQRMD,historic=monument,https://www.openstreetmap.org/?mlat=42.0468235&mlon=24.6437931#map=18/42.0468235/24.6437931
+0x640a,1,1,synthetic,1,0,,,42.0404720,24.6489859,Свлачище!,tourism=information,https://www.openstreetmap.org/?mlat=42.0404720&mlon=24.6489859#map=18/42.0404720/24.6489859
+0x641c,1,1,synthetic,1,1,,,42.0456433,24.6473551,Спирка - 5JRDPRMELBN,tourism=information|highway=bus_stop,https://www.openstreetmap.org/?mlat=42.0456433&mlon=24.6473551#map=18/42.0456433/24.6473551
+0x6506,1,1,native-osm,0,0,,,42.0461583,24.6438360,Храбрино,tourism=museum,https://www.openstreetmap.org/?mlat=42.0461583&mlon=24.6438360#map=18/42.0461583/24.6438360
+0x661b,1,1,native-osm,0,0,,,42.0300221,24.6540499,Крепост Градец,historic=archaeological_site,https://www.openstreetmap.org/?mlat=42.0300221&mlon=24.6540499#map=18/42.0300221/24.6540499
+0xd00,1,1,synthetic,1,0,,,42.0457935,24.6471834,Храбрино,tourism=information|place=locality,https://www.openstreetmap.org/?mlat=42.0457935&mlon=24.6471834#map=18/42.0457935/24.6471834
