@@ -17,9 +17,9 @@ std::string code(int t){char b[20];std::snprintf(b,sizeof(b),"0x%x",t);return b;
 std::string hexColor(U32 c){char b[16];std::snprintf(b,sizeof(b),"#%02x%02x%02x",(c>>24)&255,(c>>16)&255,(c>>8)&255);return b;}
 void tag(Tags&ts,std::string k,std::string v){if(!v.empty())ts.emplace_back(std::move(k),std::move(v));}
 std::string makeTags(const Tags&tags){std::string out;for(auto&[k,v]:tags)out+="<tag k=\""+xmlEscape(k)+"\" v=\""+xmlEscape(v)+"\"/>";return out;}
-struct Options{std::string input,output,temp,poiOverrides,poiTypesOut,poiManifest,iconsDir,poiAdditions;BBox bbox;bool clip=false,inspect=false,contours=false,allLevels=false,keepTemp=false;int limitMaps=0,jobs=1,examples=5;};
+struct Options{std::string input,output,temp,poiOverrides,poiTypesOut,poiManifest,iconsDir,poiAdditions,poiNameFixes;BBox bbox;bool clip=false,inspect=false,contours=false,allLevels=false,keepTemp=false;int limitMaps=0,jobs=1,examples=5;};
 Options parse(int argc,char**argv){Options o;for(int i=1;i<argc;i++){std::string a=argv[i];auto next=[&](){if(i+1>=argc)fail("Missing value for "+a);return std::string(argv[++i]);};
- if(a=="--help"||a=="-h"){std::cout<<"garmin2osm v0.5 --input MAP.img [--output map.osm] [--inspect] [--poi-overrides rules.csv] [--poi-additions additions.csv] [--poi-types-out unique-poi-types.csv] [--poi-manifest source-pois.csv] [--poi-examples N] [--icons-dir path] [--jobs N] [--bbox W,S,E,N] [--contours] [--keep-temp]\n";std::exit(0);}else if(a=="--input")o.input=next();else if(a=="--output")o.output=next();else if(a=="--temp")o.temp=next();else if(a=="--inspect")o.inspect=true;else if(a=="--contours")o.contours=true;else if(a=="--all-levels")o.allLevels=true;else if(a=="--keep-temp")o.keepTemp=true;else if(a=="--limit-maps")o.limitMaps=std::stoi(next());else if(a=="--poi-overrides")o.poiOverrides=next();else if(a=="--poi-additions")o.poiAdditions=next();else if(a=="--poi-types-out")o.poiTypesOut=next();else if(a=="--poi-manifest")o.poiManifest=next();else if(a=="--icons-dir")o.iconsDir=next();else if(a=="--poi-examples")o.examples=std::stoi(next());else if(a=="--jobs")o.jobs=std::stoi(next());else if(a=="--bbox"){std::string s=next();std::replace(s.begin(),s.end(),',',' ');double w,ss,e,n;if(std::sscanf(s.c_str(),"%lf%lf%lf%lf",&w,&ss,&e,&n)!=4)fail("Bad bbox");o.bbox={w,ss,e,n};o.clip=true;}else fail("Unknown argument: "+a);}
+ if(a=="--help"||a=="-h"){std::cout<<"garmin2osm v0.6 --input MAP.img [--output map.osm] [--inspect] [--poi-overrides rules.csv] [--poi-name-fixes fixes.csv] [--poi-additions additions.csv] [--poi-types-out unique-poi-types.csv] [--poi-manifest source-pois.csv] [--poi-examples N] [--icons-dir path] [--jobs N] [--bbox W,S,E,N] [--contours] [--keep-temp]\n";std::exit(0);}else if(a=="--input")o.input=next();else if(a=="--output")o.output=next();else if(a=="--temp")o.temp=next();else if(a=="--inspect")o.inspect=true;else if(a=="--contours")o.contours=true;else if(a=="--all-levels")o.allLevels=true;else if(a=="--keep-temp")o.keepTemp=true;else if(a=="--limit-maps")o.limitMaps=std::stoi(next());else if(a=="--poi-overrides")o.poiOverrides=next();else if(a=="--poi-name-fixes")o.poiNameFixes=next();else if(a=="--poi-additions")o.poiAdditions=next();else if(a=="--poi-types-out")o.poiTypesOut=next();else if(a=="--poi-manifest")o.poiManifest=next();else if(a=="--icons-dir")o.iconsDir=next();else if(a=="--poi-examples")o.examples=std::stoi(next());else if(a=="--jobs")o.jobs=std::stoi(next());else if(a=="--bbox"){std::string s=next();std::replace(s.begin(),s.end(),',',' ');double w,ss,e,n;if(std::sscanf(s.c_str(),"%lf%lf%lf%lf",&w,&ss,&e,&n)!=4)fail("Bad bbox");o.bbox={w,ss,e,n};o.clip=true;}else fail("Unknown argument: "+a);}
  if(o.input.empty())fail("--input required");if(o.output.empty()&&!o.inspect&&o.poiTypesOut.empty()&&o.poiManifest.empty()&&o.iconsDir.empty())fail("--output, --inspect or an inventory output required");if(!o.poiAdditions.empty()&&o.output.empty())fail("--poi-additions requires --output");if(o.jobs<1||o.jobs>64)fail("--jobs must be 1..64");if(o.examples<1||o.examples>20)fail("--poi-examples must be 1..20");if(o.clip&&(!o.bbox.valid()||o.bbox.w< -180||o.bbox.e>180||o.bbox.s< -90||o.bbox.n>90))fail("Invalid bbox");return o;}
 
 Tags lineTags(int t,bool ext,const std::string&name){Tags v;tag(v,"garmin:type",code(t));tag(v,"garmin:feature",ext?"extended_polyline":"polyline");tag(v,"name",name);
@@ -95,6 +95,93 @@ Tags poiTags(int t,const std::string&name){Tags v;tag(v,"garmin:type",code(t));t
   }
  }
  // Unknown Garmin categories retain original code, not falsely assigned to an OSM POI class.
+
+ // BGMountains v0.6: the published legend is authoritative for types with an
+ // extracted TYP bitmap match. Unknown codes remain unclassified, never guessed.
+ static const std::unordered_map<int,std::pair<std::string,std::string>> legendVerified = {
+  {0x200,{"capital_city","place=city;capital=yes"}},
+  {0x800,{"large_city","place=city"}},
+  {0x900,{"town","place=town"}},
+  {0x2c05,{"school","amenity=school"}},
+  {0x2c0b,{"church","amenity=place_of_worship"}},
+  {0x2d04,{"casino","amenity=casino"}},
+  {0x2d08,{"ice_rink","leisure=ice_rink"}},
+  {0x2e05,{"pharmacy","amenity=pharmacy"}},
+  {0x2e07,{"clothes_shop","shop=clothes"}},
+  {0x2f0a,{"synagogue","amenity=place_of_worship;religion=jewish"}},
+  {0x2f0c,{"mosque","amenity=place_of_worship;religion=muslim"}},
+  {0x2f0e,{"car_wash","amenity=car_wash"}},
+  {0x3004,{"courthouse","amenity=courthouse"}},
+  {0x3008,{"fire_station","amenity=fire_station"}},
+  {0x4700,{"port","industrial=port"}},
+  {0x6400,{"quarry","landuse=quarry"}},
+  {0x6401,{"bridge","man_made=bridge"}},
+  {0x6402,{"building","building=yes"}},
+  {0x6403,{"graveyard_tombstone",""}},
+  {0x6404,{"church","amenity=place_of_worship"}},
+  {0x6405,{"hunting_lodge",""}},
+  {0x6406,{"barrier_gate","barrier=gate"}},
+  {0x6407,{"picnic_site","tourism=picnic_site"}},
+  {0x6408,{"mountain_rescue","emergency=mountain_rescue"}},
+  {0x6409,{"monument","historic=monument"}},
+  {0x640a,{"danger",""}},
+  {0x640b,{"chapel","amenity=place_of_worship"}},
+  {0x640c,{"mine_shaft","man_made=mine_shaft"}},
+  {0x640d,{"lift",""}},
+  {0x640e,{"bus_stop_station","highway=bus_stop"}},
+  {0x640f,{"graveyard_tombstone",""}},
+  {0x6411,{"tower","man_made=tower"}},
+  {0x6412,{"trailhead","highway=trailhead"}},
+  {0x6413,{"tunnel",""}},
+  {0x6414,{"drinking_water","amenity=drinking_water"}},
+  {0x6415,{"camp_site","tourism=camp_site"}},
+  {0x6416,{"ruins","historic=ruins"}},
+  {0x6417,{"well","man_made=water_well"}},
+  {0x641a,{"church","amenity=place_of_worship"}},
+  {0x641b,{"church","amenity=place_of_worship"}},
+  {0x641c,{"bus_stop_station","highway=bus_stop"}},
+  {0x6500,{"reservoir",""}},
+  {0x6501,{"restaurant","amenity=restaurant"}},
+  {0x6502,{"river_passage",""}},
+  {0x6503,{"crossroad",""}},
+  {0x6505,{"shop","shop=yes"}},
+  {0x6506,{"museum","tourism=museum"}},
+  {0x650b,{"winter_marking",""}},
+  {0x650c,{"dead_end","noexit=yes"}},
+  {0x6511,{"spring","natural=spring"}},
+  {0x6600,{"triangulation",""}},
+  {0x6601,{"natural_phenomenon",""}},
+  {0x6602,{"viewpoint","tourism=viewpoint"}},
+  {0x6603,{"triangulation","man_made=survey_point"}},
+  {0x6608,{"hotel","tourism=hotel"}},
+  {0x6609,{"hut","tourism=alpine_hut"}},
+  {0x660a,{"refuge","amenity=shelter;shelter_type=basic_hut"}},
+  {0x660b,{"mark",""}},
+  {0x6610,{"meadow",""}},
+  {0x6613,{"waterfall","waterway=waterfall"}},
+  {0x6614,{"rock",""}},
+  {0x6615,{"cave","natural=cave_entrance"}},
+  {0x6617,{"peak","natural=peak"}},
+  {0x6618,{"tree","natural=tree"}},
+  {0x6619,{"prehistoric_site","historic=archaeological_site"}},
+  {0x661a,{"antiquity_site","historic=archaeological_site"}},
+  {0x661b,{"medieval_site","historic=archaeological_site"}},
+ };
+ const auto hit=legendVerified.find(t);
+ if(hit!=legendVerified.end()){
+   Tags corrected;
+   for(const auto&kv:v){
+     if(kv.first=="garmin:type"||kv.first=="garmin:feature"||kv.first=="name" ||
+        (t==0x6600 && kv.first=="ele"))corrected.push_back(kv);
+   }
+   tag(corrected,"garmin:legend",hit->second.first);
+   std::stringstream rules(hit->second.second);std::string item;
+   while(std::getline(rules,item,';')){
+     auto eq=item.find('=');if(eq!=std::string::npos&&eq>0)
+       tag(corrected,item.substr(0,eq),item.substr(eq+1));
+   }
+   return corrected;
+ }
  return v;
 }
 
@@ -124,6 +211,31 @@ void loadOverrides(const std::string&file){if(file.empty())return;std::ifstream 
   overrides[rule.type].push_back(std::move(rule));}
  size_t nRules=0;for(auto&kv:overrides)nRules+=kv.second.size();std::cerr<<"Loaded "<<nRules<<" POI override rules from "<<file<<"\n";
 }
+// Coordinate-specific name fixes are deliberately opt-in and never inferred from
+// similar-looking strings. A wrong-coordinate phantom POI must NOT be renamed.
+using NameFixKey=std::tuple<std::string,int,int32_t,int32_t,std::string>;
+std::map<NameFixKey,std::string> nameFixes;
+void loadNameFixes(const std::string&file){if(file.empty())return;
+ std::ifstream in(file);if(!in)fail("Cannot open name corrections file: "+file);
+ std::string line;size_t n=0;while(std::getline(in,line)){
+  ++n;if(!line.empty()&&line.back()=='\r')line.pop_back();
+  if(line.empty()||line[0]=='#')continue;
+  auto col=csvParse(line);if(col.size()!=7)fail("Name fixes: expected 7 columns at line "+std::to_string(n));
+  if(col[0]=="mapset")continue;
+  int t=parseType(col[1]);double lat=std::stod(col[2]),lon=std::stod(col[3]);
+  if(!std::isfinite(lat)||!std::isfinite(lon)||std::abs(lat)>90||std::abs(lon)>180)
+   fail("Bad name-fix coordinates at line "+std::to_string(n));
+  if(col[0].empty()||col[5].empty())fail("Name fix needs mapset and replacement at line "+std::to_string(n));
+  NameFixKey key{col[0],t,int32_t(std::llround(lat*1e7)),int32_t(std::llround(lon*1e7)),col[4]};
+  if(!nameFixes.emplace(key,col[5]).second)fail("Duplicate name-fix row at line "+std::to_string(n));
+ }
+ std::cerr<<"Loaded "<<nameFixes.size()<<" coordinate-specific POI name fixes\n";
+}
+std::string resolveNameFix(const std::string&map,int type,double lat,double lon,const std::string&old){
+ auto it=nameFixes.find({map,type,int32_t(std::llround(lat*1e7)),int32_t(std::llround(lon*1e7)),old});
+ return it==nameFixes.end()?old:it->second;
+}
+
 std::optional<Tags> configuredPoi(int type,const std::string&name){
  Tags result=poiTags(type,name);
  auto hit=overrides.find(type);if(hit==overrides.end())return result;
@@ -221,7 +333,7 @@ struct Store{
  }
  void commit(){sql("COMMIT");sql("BEGIN");}
  void output(const std::string&file){sql("COMMIT");std::ofstream out(file,std::ios::binary);if(!out)fail("Cannot write "+file);
-  out<<"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<osm version=\"0.6\" generator=\"garmin2osm-cpp-0.4\" upload=\"never\">\n";
+  out<<"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<osm version=\"0.6\" generator=\"garmin2osm-cpp-0.6\" upload=\"never\">\n";
   sqlite3_stmt*st=nullptr;
   if(sqlite3_prepare_v2(db,"SELECT id,lat,lon,tags FROM nodes ORDER BY id",-1,&st,nullptr)!=SQLITE_OK)fail(sqlite3_errmsg(db));
   while(sqlite3_step(st)==SQLITE_ROW){auto id=sqlite3_column_int64(st,0);double lat=sqlite3_column_int(st,1)/10000000.,lon=sqlite3_column_int(st,2)/10000000.;const char*tags=(const char*)sqlite3_column_text(st,3);
@@ -240,10 +352,11 @@ struct Store{
  }
 };
 
-struct Stats{std::map<std::pair<int,int>,uint64_t> byType;uint64_t lines=0,areas=0,points=0,skipped=0;std::map<int,PoiTypeInfo> poiTypes;};
+struct Stats{std::map<std::pair<int,int>,uint64_t> byType;uint64_t lines=0,areas=0,points=0,skipped=0,extendedOutsideBounds=0;std::map<int,PoiTypeInfo> poiTypes;};
 void processMap(const Map&m,Store*db,Stats&stats,const Options&o,std::ostream*poiManifest=nullptr){
  const auto&r=m.sections.at("RGN");
- auto recordPoi=[&](int typ,double lon,double lat,const std::string&name,bool extended){
+ auto recordPoi=[&](int typ,double lon,double lat,const std::string&rawName,bool extended){
+    const std::string name=resolveNameFix(m.name,typ,lat,lon,rawName);
     stats.byType[{3,typ}]++;stats.points++;
     auto&info=stats.poiTypes[typ];info.count++;if(!name.empty())info.named++;
     addSample(info,{m.name,name,lat,lon},o.examples);
@@ -310,8 +423,12 @@ void processMap(const Map&m,Store*db,Stats&stats,const Options&o,std::ostream*po
     else for(size_t at=0;at+6<=ext.size();){const U8*p=ext.data()+at;int sub=p[1];size_t len=6+bool(sub&0x80)+3*bool(sub&0x20);if(at+len>ext.size())break;
       int typ=0x10000+(int(p[0])<<8)+(sub&31);
       double lon=geo(s.cx+s16(p+2)*(1<<s.shift)),lat=geo(s.cy+s16(p+4)*(1<<s.shift));
+      // Avoid malformed extended records that escape their actual TRE subdivision.
+      // A small ~5-metre tolerance accommodates quantization at Garmin zoom levels.
+      if(lon < s.bounds.w-0.00005 || lon > s.bounds.e+0.00005 ||
+         lat < s.bounds.s-0.00005 || lat > s.bounds.n+0.00005){stats.extendedOutsideBounds++;at+=len;continue;}
       if(!o.clip || (lon>=o.bbox.w&&lon<=o.bbox.e&&lat>=o.bbox.s&&lat<=o.bbox.n)){
-       std::string name; if(sub&0x20){U32 inf=u24(p+len-3);name=(inf&0x400000)?m.poiLabel(inf&0x3fffff):m.label(inf&0x3fffff);}
+       std::string name; if(sub&0x20){U32 inf=u24(p+6);name=(inf&0x400000)?m.poiLabel(inf&0x3fffff):m.label(inf&0x3fffff);}
        recordPoi(typ,lon,lat,name,true);}
       at+=len;}
    }}
@@ -324,7 +441,7 @@ void processMap(const Map&m,Store*db,Stats&stats,const Options&o,std::ostream*po
 // nodes before all OSM ways. Node IDs are offset by 10^10 per worker, including refs.
 void outputStages(const std::string&outFile,const std::vector<std::string>&paths){
  std::ofstream out(outFile,std::ios::binary);if(!out)fail("Cannot open "+outFile);
- out<<"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<osm version=\"0.6\" generator=\"garmin2osm-cpp-0.5\" upload=\"never\">\n";
+ out<<"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<osm version=\"0.6\" generator=\"garmin2osm-cpp-0.6\" upload=\"never\">\n";
  auto walk=[&](int pass){for(size_t k=0;k<paths.size();k++){
    sqlite3*db=nullptr;if(sqlite3_open_v2(paths[k].c_str(),&db,SQLITE_OPEN_READONLY,nullptr)!=SQLITE_OK)fail("Cannot read parallel stage");
    const int64_t delta=int64_t(k)*10000000000LL;
@@ -374,7 +491,7 @@ void injectManualPois(const std::string&file,const std::string&dbPath){
 }
 
 int run(int argc,char**argv){
- auto o=parse(argc,argv);loadOverrides(o.poiOverrides);MapSet set(o.input);
+ auto o=parse(argc,argv);loadOverrides(o.poiOverrides);loadNameFixes(o.poiNameFixes);MapSet set(o.input);
  for(const auto&[n,parts]:set.parts){auto it=parts.find("TYP");if(it!=parts.end()){gStyles.load(it->second);break;}}
  std::cerr<<"Maps="<<set.maps.size()<<" TYP icons="<<gStyles.pointStyles<<" jobs="<<o.jobs<<"\n";
  saveIcons(o.iconsDir);
@@ -396,7 +513,7 @@ int run(int argc,char**argv){
  }catch(...){std::lock_guard<std::mutex>guard(errorLock);if(!error)error=std::current_exception();}};
  if(jobs==1)worker(0);else {std::vector<std::thread>threads;for(int k=0;k<jobs;k++)threads.emplace_back(worker,k);for(auto&t:threads)t.join();}
  if(error)std::rethrow_exception(error);
- Stats total;for(const auto&st:stats){total.lines+=st.lines;total.areas+=st.areas;total.points+=st.points;total.skipped+=st.skipped;
+ Stats total;for(const auto&st:stats){total.lines+=st.lines;total.areas+=st.areas;total.points+=st.points;total.skipped+=st.skipped;total.extendedOutsideBounds+=st.extendedOutsideBounds;
   for(const auto&[k,v]:st.byType)total.byType[k]+=v;
   for(const auto&[k,v]:st.poiTypes){auto&dest=total.poiTypes[k];dest.count+=v.count;dest.named+=v.named;
    for(const auto&ex:v.examples)addSample(dest,ex,o.examples);}}
@@ -406,7 +523,7 @@ int run(int argc,char**argv){
   out<<"mapset,kind,code,lat,lon,name\n";
   for(const auto&p:manifestPaths){std::ifstream in(p);if(in.peek()!=std::char_traits<char>::eof())out<<in.rdbuf();in.close();fs::remove(p);}
  }
- std::cerr<<"Finished "<<selected.size()<<" maps; lines="<<total.lines<<" areas="<<total.areas<<" rawPOIs="<<total.points<<" uniquePOItypes="<<total.poiTypes.size()<<" parseStops="<<total.skipped<<"\n";
+ std::cerr<<"Finished "<<selected.size()<<" maps; lines="<<total.lines<<" areas="<<total.areas<<" rawPOIs="<<total.points<<" uniquePOItypes="<<total.poiTypes.size()<<" parseStops="<<total.skipped<<" extendedOutsideBounds="<<total.extendedOutsideBounds<<"\n";
  if(exporting){injectManualPois(o.poiAdditions,dbPaths[0]);outputStages(o.output,dbPaths);if(!o.keepTemp)for(auto&p:dbPaths)fs::remove(p);std::cerr<<"Wrote "<<o.output<<"\n";}
  return 0;
 }
