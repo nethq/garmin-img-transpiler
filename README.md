@@ -1,66 +1,127 @@
-# BGMountains Garmin IMG → OSM v0.6 (legend-reviewed, spatially validated)
+# BGMountains Garmin IMG → OsmAnd OBF (v0.7)
 
-This is an **incremental source + QA release**, based on the v0.5 converter. Original map IMG/OBF binaries are **not bundled**. The source map's license is **not** the converter's GPL license: map-derived data, icons, CSV and examples are for private verification unless the rights holders authorize redistribution.
+**One command builds the C++ IMG converter, emits a reviewed OSM, generates complete custom OsmAnd POI and map type definitions, validates the intermediate source/OSM data, and invokes OsmAndMapCreator to build an OBF.**
 
-## Corrected
+Unlike v0.6's optional `build_obf.sh` wrapper, the main script no longer expects you to create any missing XML files. First-time setup requires access to the official OsmAnd resource files and the OsmAndMapCreator Java tool; the script can download both on demand. Java, Python, CMake, libpng, SQLite3 and a C++ compiler must be installed.
 
-1. **67 exact extracted TYP icon ↔ supplied BGMountains legend matches**, 60 of them present as decoded POI types in the IMG (7 icons occur only in its TYP catalog), including 48 changes to the previous semantic defaults. Changes appear in `data/legend-corrections-log.csv`, and new mappings are embedded directly in `src/vector.cpp` as safe fallbacks. Every verified icon also gets a `garmin:legend` tag to aid inspection. Optional `config/poi-overrides-legend-reviewed.csv` permits further edits while retaining the original 1,871 type rows.
-2. **Extended-point label pointer**: v0.5 read the label pointer at `p+len-3`; Garmin's layout places it at `p+6`, before the optional extra byte. Correcting this fixed or cleared **117 label outcomes**. See `data/extended-label-decoder-changes.csv`, with old/new names/coordinates. The string `есебър` was a decoder artifact at the *wrong geographic location*, not a misspelling to force to `Несебър`. The actual town of Несебър is in the normal classic point data at 42.6599550,27.7197504, mapset 02235056.
-3. **Spatial sanity gate**: Extended POIs outside their own TRE subdivision bounds (beyond 0.00005° margin) are no longer emitted. **5,602 suspected/invalid point records** disappear; classic POI count remains **407,820**. This is a conservative defense against malformed extended streams, not independent Garmin specification conformance testing. Retained extended records may still warrant validation. Total kept POIs: **410,563**, distinct types: **263** (113 classic, 150 extended). The old 1,871-code inventory remains available, annotated with exclusion counts.
-4. **Optional per-feature POI name corrections**, `--poi-name-fixes config/poi-name-fixes.csv` uses an exact source-map ID, hex code, latitude, longitude, previous name and replacement name. Never blanket-correct all points with a particular substring: it could mask a decoder error. No name corrections are active by default.
-5. **Threads are off by default** (`--jobs 1`); use `--jobs 4` to enable four parallel workers. POI rules apply consistently in both cases.
-
-## Files
-
-- `config/poi-overrides-all-types.csv` (same as `config/poi-overrides-legend-reviewed.csv`): **corrected editable 1,871-row override file** (schema `code,name_contains,mode,tags,note`). 60 active POI-code rows corrected (plus 7 extra verified icons embedded in C++ for future occurrences). Unverified rows are left inert and flagged in the notes.
-- `config/poi-name-fixes.csv`: name correction template, no active fixes by default.
-- `data/BGMountains-unique-poi-types.csv` (same as `data/BGMountains-unique-poi-types-STRICT-reviewed.csv`): **current useful catalog: 263 retained raw types**, current counts, reviewed classification status, up to five real source coordinates and names per type.
-- `data/BGMountains-unique-poi-types-reviewed.csv`: **historical 1,871-type catalog**, with v0.5 counts, exclusions and review status; do not mistake rejected coordinates for correct map objects.
-- `data/legend-corrections-log.csv`: 60 present-and-verified mappings; `data/all-67-icon-legend-matches.csv`: 67 TYP icon-to-legend matches (7 icon codes not observed as POIs), including original/new OSM semantic tags and one coordinate each.
-- `data/extended-label-decoder-changes.csv`: 117 extended-label before/after results (some names vanish because they came from the wrong LBL offset).
-- `data/legend-verified-POI-QA-waypoints.gpx`: 179 sample POIs of verified hex codes, for simultaneous visual comparison in GPXSee + original IMG. Exact count is in the GPX file.
-- `data/BGMountains-POI-Explorer.html`: no-network/offline searchable icon reference, with copyable sample coordinates and basemap links.
-- `data/poi-icons/*.png`: embedded Garmin icons extracted from the original TYP (copyright depends on source data).
-- `tools/validate_pois.py`: previously tested source→OSM audit; limitation remains that it is not a third-party ground-truth or OBF assertion.
-
-## Build and validation
+## One-command full Bulgarian map
 
 ```bash
-sudo apt-get install -y cmake g++ libpng-dev libsqlite3-dev python3
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j "$(nproc)"
-ctest --test-dir build --output-on-failure
+sudo apt update
+sudo apt install -y build-essential cmake libpng-dev libsqlite3-dev python3 openjdk-21-jre-headless unzip
 
-./build/garmin2osm --input 'gmapsupp.img' \
-   --output BGMountains-legend-reviewed.osm \
-   --poi-overrides config/poi-overrides-legend-reviewed.csv \
-   --poi-name-fixes config/poi-name-fixes.csv \
-   --poi-manifest BGMountains-source-reviewed.csv \
-   --poi-types-out BGMountains-types-reviewed.csv
-
-python3 tools/validate_pois.py compare \
-  --source BGMountains-source-reviewed.csv \
-  --osm BGMountains-legend-reviewed.osm \
-  --rules config/poi-overrides-legend-reviewed.csv \
-  --report validated.json --mismatches mismatches.csv
+python3 scripts/build_bgmountains.py \
+  --img '/path/to/gmapsupp.img' \
+  --out '/path/to/BGMountains-build' \
+  --download-creator
 ```
 
-Parallelism: append `--jobs 4` to the converter command if desired; otherwise it uses one worker.
+If you **already have** OsmAndMapCreator, use `--creator /path/to/OsmAndMapCreator` in place of `--download-creator`. You can also `export OSMAND_MAPCREATOR=/path/to/OsmAndMapCreator` and omit `--creator`.
 
-**Adding one verified name correction:** edit `config/poi-name-fixes.csv`, with this schema:
+OsmAndMapCreator is ~150 MB and requires extra disk space and Java RAM. By default, the script downloads it **only when** you request `--download-creator`; upstream OsmAnd `poi_types.xml` and `rendering_types.xml` are downloaded or read from your MapCreator directory automatically, then cached in the output folder. Requires Internet for first use unless you supply existing XML files with `--poi-base FILE --rendering-base FILE`.
+
+**Multithreading remains disabled by default (`--jobs 1`).** Pass `--jobs 4` explicitly for the IMG parsing stage. It does not control MapCreator's Java processing.
+
+If the Java process runs out of memory:
+
+```bash
+python3 scripts/build_bgmountains.py --img gmapsupp.img --out ./BGMountains-build \
+  --creator ~/OsmAndMapCreator --jobs 4 \
+  --java-opts '-Xms1G -Xmx12G'
+```
+
+The full-country OSM can be large. Allocate substantial disk space for OSM XML, temporary indexing databases, and OBF output. The script retains intermediate files for auditing.
+
+## What is generated
+
+```text
+BGMountains-build/
+  BGMountains.osm                    # converted source, Garmin type and name kept
+  source-pois.csv                    # source point audit manifest
+  poi-types.csv                      # observed type counts and example coordinates
+  validation.json                   # source-to-OSM counts/mismatches
+  mismatches.csv
+  converter.log
+  validator.log
+  upstream/poi_types.xml            # official OsmAnd definitions (if downloaded)
+  upstream/rendering_types.xml
+  osmand-config/
+    poi_types.bgmountains.xml        # FULL base OsmAnd POI rules + 1 custom type per observed Garmin code
+    rendering_types.bgmountains.xml  # FULL base render encoding + map encoding for each Garmin code
+    BGMountains-custom.render.xml    # OPTIONAL visual style for custom icons in OsmAnd
+    type-index-summary.json
+  mapcreator.log
+  *.obf                              # full map (created by OsmAndMapCreator)
+  obf-poi-index.txt                  # dump from inspector.sh, if available
+  build-manifest.json
+```
+
+For the v0.6 reviewed **national catalog**: 263 decoded types, 410,563 POIs, 87 types with **at least 100** occurrences, 86 with Garmin TYP bitmap extraction. Actual new runs produce their own observed counts. The default threshold is 100; use `--threshold 250` to change it.
+
+### Three different meanings of 'icon'
+
+1. **Native OsmAnd map icon.** Verified type receives proper OSM tags (`natural=spring`, `tourism=hotel`, etc.) from `config/poi-overrides-all-types.csv`. Existing OsmAnd styles choose their built-in symbols.
+2. **Custom Garmin type in OBF.** Every observed POI receives `garmin:type` and `bgm_poi=type_0xHEX`; the generated POI and map type XML preserve those types as a dedicated category. Map-index objects at high-frequency types are stored from zoom **15** by default, rare types from zoom **17** (adjustable by `--frequent-zoom`, `--rare-zoom`). Native OsmAnd styles may not draw custom types without a matching style.
+3. **Actual Garmin TYP bitmap.** Preserved separately as PNG in `data/poi-icons/`; an OBF **does not embed third-party bitmap resources into the app icon set**. To display these exact symbols requires changing OsmAnd application resources, not just editing XML. A different installed OsmAnd render style may refer to already available built-in symbols.
+
+## Assign additional built-in OsmAnd icons yourself
+
+Edit `config/osmand-icons.csv`:
 
 ```csv
-mapset,code,lat,lon,old_name,new_name,note
-# Example (illustrative; this row is NOT a real correction):
-# 02234071,0x6609,42.1897745,23.2835913,Х.Иван Вазов,х. Иван Вазов,Check actual Garmin source before use
+code,show_in_custom_style,minzoom,osmand_builtin_icon,...
+0x650b,yes,16,information,...
 ```
 
-The original `name` and coordinates in the source manifest are quantized to seven decimals for exact matching. A manual name fix affects both OSM and the manifest, so it **cannot count as independent evidence of cartographic correctness**; record your verification separately.
+For common unknowns (>=100 occurrences with no verified standard OSM semantic category) the sample config enables a generic **built-in** `information` icon in an optional style. For verified classes, `show_in_custom_style=no` lets the stock OsmAnd map style draw a more meaningful native icon. The file includes one entry for **all 263 source types**, occurrence counts and sample coordinates. Change the `osmand_builtin_icon` to a valid icon ID supported by your installed OsmAnd version and set `show_in_custom_style=yes` to override the default.
 
-## What this does not prove
+After building, install `BGMountains-custom.render.xml` as a custom OsmAnd rendering style in the application's `rendering` directory, then select the corresponding map style. It depends on OsmAnd's `default` style. It is optional and **not automatically installed** by placing the OBF on the device. Its exact icon rendering has not been device-tested in this release; built-in IDs and application versions may differ. Avoid over-rendering at low zoom because 410k points can be slow.
 
-The user's full `.obf` was not provided. Compile it again from the updated OSM source and inspect its POI categories/index; neither a successful OSM export nor this audit proves that OsmAnd indexing retains all custom tags. Geometry classification for the map's **area and line legend** remains a separate review (this patch principally covers POIs). Extended types other than those confirmed by icons are **unverified**, even when they pass the subdivision bounds check. Several extended nautical symbols (e.g., navigation lights) appear plausible but have no matching extracted TYP glyph.
+## Test a region first
 
-## 0x10d1f / Несебър
+```bash
+python3 scripts/build_bgmountains.py --img gmapsupp.img \
+ --out ./rila-build --bbox 23.22,42.08,23.47,42.29 \
+ --creator ~/OsmAndMapCreator
+```
 
-The v0.5 type list showed `есебър` at **43.0592179,27.7399421**. At that latitude it is ~44 km north of the original Nesebar town POI. The v0.6 label-pointer fix no longer returns `есебър` at that record, and the subdivision bounds check suppresses the spurious record. **No synthetic `Несебър` POI has been inserted.** The real original city/town record is preserved unchanged.
+Alternatively use `--prepare-only` to stop before Java: this produces the OSM plus generated XML and validation reports.
+
+## Rebuild from existing OSM
+
+Only use an OSM generated by **v0.7 or later** containing `bgm_poi` tags:
+
+```bash
+python3 scripts/build_bgmountains.py \
+ --osm ./BGMountains-build/BGMountains.osm \
+ --catalog ./BGMountains-build/poi-types.csv \
+ --creator ~/OsmAndMapCreator \
+ --out ./obf-rebuild
+```
+
+Original v0.6 OSM exports **lack** the `bgm_poi` classifier. The script rejects those for this path rather than quietly producing an incomplete custom POI index. To reuse old data, rerun the IMG extraction with v0.7.
+
+## How POIs are edited
+
+- `config/poi-overrides-all-types.csv`: reviewed original IMG type → semantic OSM tags (five-column CSV). You can override/add rules, preserving provenance. This includes the earlier 67 legend/icon matches.
+- `config/poi-name-fixes.csv`: coordinate-specific correction of verified names, never guessed universally.
+- `config/poi-additions.csv`: manually add personally verified POIs.
+- `config/osmand-icons.csv`: optional on-screen **stock OsmAnd** symbol selections for custom raw types.
+- `data/BGMountains-unique-poi-types.csv`: counts, names, five real sample coordinates per Garmin hex type.
+- `data/poi-icons`: 96 extracted TYP bitmaps for reference, not automatically installed into OsmAnd.
+
+### Validation
+
+The C++/Python roundtrip test checks extracted source POI manifest against OSM coordinates, names and tags. `ctest --test-dir build --output-on-failure` runs 5 bundled tests, including checks of full upstream XML augmentation. On the tested source bbox (23.22,42.08,23.47,42.29) a v0.7 extraction produced 3,986 POIs across 60 types and zero source-versus-OSM mismatches. **These tests do not assert OBF persistence** until MapCreator runs on your machine and `obf-poi-index.txt` is reviewed.
+
+OsmAnd has separate indexed data for map rendering and POI search, and an additional app-side style/icons component. A successful OBF build does not prove every icon will be visible. To debug OBF use `~/OsmAndMapCreator/inspector.sh -vpoi /path/to/map.obf` and compare the categories to `osmand-config/type-index-summary.json`.
+
+## Upstream and redistribution
+
+The repository's C++ converter has its own `LICENSE`; BGMountains-derived SVG/PNG icons, data, examples and Garmin IMG/OBF remain subject to map licensors' conditions. Do not redistribute the full data release or generated OBF as unrestricted ODbL/CC0 without additional rights clearance. The script downloads official OsmAnd XML into a private build directory rather than repackaging those resource files in this source ZIP.
+
+Official references:
+- https://osmand.net/docs/technical/map-creation/create-offline-maps-yourself/
+- https://github.com/osmandapp/OsmAnd-resources/tree/master/poi
+- https://github.com/osmandapp/OsmAnd-resources/tree/master/obf_creation
+- https://osmand.net/docs/technical/osmand-file-formats/osmand-rendering-style/

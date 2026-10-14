@@ -1,3 +1,5 @@
 garmin2osmand-v3/*.osm
 *.obf*
 *.ocbf*
+compiling-obf/*
+bgmountains-build/*

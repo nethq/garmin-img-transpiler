@@ -238,13 +238,18 @@ std::string resolveNameFix(const std::string&map,int type,double lat,double lon,
 
 std::optional<Tags> configuredPoi(int type,const std::string&name){
  Tags result=poiTags(type,name);
- auto hit=overrides.find(type);if(hit==overrides.end())return result;
- for(const auto&rule:hit->second){if(!rule.nameContains.empty()&&name.find(rule.nameContains)==std::string::npos)continue;
+ auto hit=overrides.find(type);
+ if(hit!=overrides.end())for(const auto&rule:hit->second){
+  if(!rule.nameContains.empty()&&name.find(rule.nameContains)==std::string::npos)continue;
   if(rule.mode=="drop")return std::nullopt;
   if(rule.mode=="replace"||rule.mode=="keep_raw"){
    result.erase(std::remove_if(result.begin(),result.end(),[](const auto&kv){return kv.first!="garmin:type"&&kv.first!="garmin:feature"&&kv.first!="name";}),result.end());}
   for(const auto&[k,v]:rule.tags){result.erase(std::remove_if(result.begin(),result.end(),[&](const auto&kv){return kv.first==k;}),result.end());if(!v.empty())result.emplace_back(k,v);}
  }
+ // BGM-specific stable classifier: register in custom OsmAnd POI and map indexes.
+ // Never disguise unknown objects as a fake OSM tourism/amenity category.
+ result.erase(std::remove_if(result.begin(),result.end(),[](const auto&kv){return kv.first=="bgm_poi";}),result.end());
+ tag(result,"bgm_poi","type_"+code(type));
  return result;
 }
 struct Sample{std::string map,name;double lat=0,lon=0;};
