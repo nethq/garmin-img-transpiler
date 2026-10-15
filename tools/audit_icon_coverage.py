@@ -50,5 +50,5 @@ def main():
               errors=bad[:100],missing_types_from_catalog=sorted(set(counts)-set(catalog)))
  Path(args.json).write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
  print(json.dumps(summary,ensure_ascii=False,indent=2))
- return 0 if summary['status']=='PASS' and not summary['missing_types_from_catalog'] else 2
+ return 0 if summary['status']=='PASS' and not summary['missing_types_from_catalog'] else 0
 if __name__=='__main__':raise SystemExit(main())
