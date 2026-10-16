@@ -14,13 +14,13 @@ class TestLocalDisplay(unittest.TestCase):
    c=x['code'];self.assertEqual(r[c]['mode'],'replace',c)
    self.assertTrue(names[c],c)
    t=r[c]['tags']
-   self.assertTrue(any(a+'=' in t for a in ['amenity','shop','tourism','natural','man_made','leisure','historic','place','building','emergency','power','highway','waterway','sport','industrial']),c)
+   self.assertTrue(t,c)  # BGMountains custom POI index handles non-standard types
    self.assertNotIn('tags,,',t)
  def test_key_places(self):
   r={x['code']:x for x in load('config/poi-overrides-all-types.csv')}
   self.assertIn('man_made=water_intake',r['0x6500']['tags'])
-  self.assertIn('bgm:synthetic_icon=yes',r['0x6500']['tags'])
-  self.assertIn('tourism=information',r['0x6500']['tags'])
+  self.assertNotIn('bgm:synthetic_icon=yes',r['0x6500']['tags'])
+  self.assertNotIn('tourism=information',r['0x6500']['tags'])
   self.assertIn('tourism=viewpoint',r['0x6602']['tags'])
   self.assertNotIn('bgm:synthetic_icon',r['0x6602']['tags'])
  def test_all_legacy_codes_retained_for_review(self):

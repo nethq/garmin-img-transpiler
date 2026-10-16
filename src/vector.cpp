@@ -23,9 +23,13 @@ Options parse(int argc,char**argv){Options o;for(int i=1;i<argc;i++){std::string
  if(o.input.empty())fail("--input required");if(o.output.empty()&&!o.inspect&&o.poiTypesOut.empty()&&o.poiManifest.empty()&&o.iconsDir.empty())fail("--output, --inspect or an inventory output required");if(!o.poiAdditions.empty()&&o.output.empty())fail("--poi-additions requires --output");if(o.jobs<1||o.jobs>64)fail("--jobs must be 1..64");if(o.examples<1||o.examples>20)fail("--poi-examples must be 1..20");if(o.clip&&(!o.bbox.valid()||o.bbox.w< -180||o.bbox.e>180||o.bbox.s< -90||o.bbox.n>90))fail("Invalid bbox");return o;}
 
 Tags lineTags(int t,bool ext,const std::string&name){Tags v;tag(v,"garmin:type",code(t));tag(v,"garmin:feature",ext?"extended_polyline":"polyline");tag(v,"name",name);
- if(ext){ // Physical trail identity not proven: preserve Garmin overlay, mark it as a hiking path geometry.
-   tag(v,"highway","path");tag(v,"foot","yes");tag(v,"trailblazed","yes");tag(v,"garmin:route_overlay","yes");
-   const auto it=gStyles.lines.find(t);if(it!=gStyles.lines.end()&&it->second.color)tag(v,"colour",hexColor(it->second.color));return v;
+ if(ext){ // TYP route overlay is graphical, NOT independently verified routable geometry.
+   tag(v,"bgm_route","type_"+code(t));tag(v,"garmin:route_overlay","yes");
+   const auto it=gStyles.lines.find(t);if(it!=gStyles.lines.end()){
+     if(it->second.color)tag(v,"colour",hexColor(it->second.color));
+     if(it->second.hasPattern())tag(v,"bgm:line_pattern","garmin_bitmap");
+   }
+   return v;
  }
  if(t<=0x0c){const char*klass=nullptr;
   switch(t){case 0:klass="road";break;case 1:klass="motorway";break;case 2:klass="primary";break;case 3:klass="secondary";break;case 4:klass="tertiary";break;case 5:klass="unclassified";break;case 6:klass="residential";break;case 7:klass="service";break;case 8:case 9:case 11:klass="motorway_link";break;case 10:klass="track";break;case 12:klass="residential";break;}
@@ -44,7 +48,7 @@ Tags areaTags(int t,const std::string&name){Tags v;tag(v,"garmin:type",code(t));
  case 0x05:tag(v,"amenity","parking");break;case 0x07:tag(v,"aeroway","aerodrome");break;
  case 0x0b:tag(v,"amenity","hospital");break;case 0x0c:tag(v,"landuse","industrial");break;
  case 0x13:tag(v,"building","yes");break;case 0x17:tag(v,"leisure","park");break;
- case 0x18:tag(v,"leisure","golf_course");break;case 0x09:tag(v,"leisure","marina");break;
+ case 0x18:tag(v,"leisure","sports_centre");break;case 0x09:tag(v,"landuse","retail");break;
  case 0x14:case 0x15:case 0x16:tag(v,"boundary","national_park");break;
  case 0x28:case 0x32:tag(v,"natural","water");tag(v,"water","sea");break;
  case 0x3c:case 0x3d:case 0x40:case 0x41:tag(v,"natural","water");break;
@@ -69,13 +73,14 @@ Tags poiTags(int t,const std::string&name){Tags v;tag(v,"garmin:type",code(t));t
  else if(t==0x6407){tag(v,"tourism","picnic_site");}
  else if(t==0x640d){tag(v,"aerialway","station");}
  else if(t==0x6404||t==0x640b||t==0x641a||t==0x2c0b){tag(v,"amenity","place_of_worship");}
- else if(t==0x6602||t==0x6608){tag(v,"tourism","viewpoint");}
+ else if(t==0x6602){tag(v,"tourism","viewpoint");}
+ else if(t==0x6608){tag(v,"tourism","hotel");}
  else if(t==0x2800){tag(v,"place","locality");}
  else if(t==0x6600){ // Geographic spot heights; don't misclassify elevations as villages.
    try{size_t parsed=0;int n=std::stoi(name,&parsed);if(parsed==name.size()&&n>=0&&n<=8848)tag(v,"ele",std::to_string(n));}catch(...){}
  }
  else if(t==0x6614){tag(v,"garmin:marker","distance_or_index");}
- else if(t==0x6500){tag(v,"man_made","water_works");}
+ else if(t==0x6500){tag(v,"man_made","water_intake");}
  else if(t==0x6402&&name.find("Посетителски")!=std::string::npos){tag(v,"tourism","information");tag(v,"information","office");}
  else if(t==0x6411){tag(v,"man_made","tower");}
  // 0x6414 handled above as drinking_water: conflicting old water_well branch removed.

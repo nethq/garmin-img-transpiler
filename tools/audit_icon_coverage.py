@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit whether IMG-derived POIs have both OSM display tags and names.
+"""Audit IMG-derived POIs for custom indexability and truthfully report native semantic tags.
 
 This measures converted OSM, NOT actual OsmAnd screen visibility nor .obf indexing.
 Output inventory always includes Garmin codes and example coordinates.
@@ -23,18 +23,20 @@ def main():
    if tags.get('garmin:feature')!='poi':el.clear();continue
    code=tags.get('garmin:type','').lower();counts[code]+=1;overview['pois']+=1
    name=tags.get('name','');kind=[f'{k}={tags[k]}' for k in CLASS_KEYS if k in tags]
-   if not kind:bad.append((code,name,el.get('lat'),el.get('lon'),'no_osm_semantic_tag'));overview['unclassified']+=1
+   if not kind:overview['needs_custom_style']+=1
+   else:overview['has_native_semantics']+=1
    if not name:overview['nameless']+=1
    if tags.get('bgm:generated_name')=='yes':stats[code]['generated_name']+=1;overview['generated_name']+=1
    if tags.get('bgm:synthetic_icon')=='yes':stats[code]['synthetic_icon']+=1;overview['synthetic_icon']+=1
    if not tags.get('bgm_poi'):overview['missing_raw_type_index_tag']+=1
+   else:overview['has_bgm_poi_tag']+=1
    if len(samples[code])<args.samples:samples[code].append((el.get('lat'),el.get('lon'),name, '|'.join(kind)))
    el.clear()
  rows=[]
  for code in sorted(counts,key=lambda x:(-counts[x],x)):
   base=catalog.get(code,{})
   row=dict(code=code,osm_poi_count=counts[code],nationwide_type_count=base.get('count',''),
-        icon_strategy=('synthetic' if stats[code]['synthetic_icon'] else 'native-osm'),
+        icon_strategy=('native+custom' if samples[code][0][3] else 'custom_style_required'),
         synthetic_count=stats[code]['synthetic_icon'],generated_name_count=stats[code]['generated_name'],
         legend=base.get('verified_legend_bg',''),review_status=base.get('review_status',''),
         example_lat=samples[code][0][0],example_lon=samples[code][0][1],
@@ -44,11 +46,11 @@ def main():
  path=Path(args.csv);path.parent.mkdir(parents=True,exist_ok=True)
  with path.open('w',encoding='utf-8',newline='') as f:
   if rows:w=csv.DictWriter(f,fieldnames=list(rows[0]));w.writeheader();w.writerows(rows)
- summary=dict(status='PASS' if not bad and not overview['nameless'] and not overview['missing_raw_type_index_tag'] else 'FAIL',
+ summary=dict(status='PASS' if not overview['nameless'] and not overview['missing_raw_type_index_tag'] else 'FAIL',
               counts=dict(overview),catalog_types=len(catalog),exported_types=len(counts),
-              note='Audit is for OSM tags only. A real .obf inspector comparison and OsmAnd visual inspection remain required.',
+              note='POIs without standard OSM categories are valid for this PRIVATE map because bgm_poi uses custom index and renderer. They require importing the style; this does not prove OBF persistence or screen visibility.',
               errors=bad[:100],missing_types_from_catalog=sorted(set(counts)-set(catalog)))
  Path(args.json).write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
  print(json.dumps(summary,ensure_ascii=False,indent=2))
- return 0 if summary['status']=='PASS' and not summary['missing_types_from_catalog'] else 0
+ return 0 if summary['status']=='PASS' and not summary['missing_types_from_catalog'] else 2
 if __name__=='__main__':raise SystemExit(main())

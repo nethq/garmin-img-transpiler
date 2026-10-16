@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "counts": {
+    "pois": 101,
+    "has_native_semantics": 43,
+    "generated_name": 42,
+    "has_bgm_poi_tag": 101,
+    "needs_custom_style": 58
+  },
+  "catalog_types": 13,
+  "exported_types": 13,
+  "note": "POIs without standard OSM categories are valid for this PRIVATE map because bgm_poi uses custom index and renderer. They require importing the style; this does not prove OBF persistence or screen visibility.",
+  "errors": [],
+  "missing_types_from_catalog": []
+}

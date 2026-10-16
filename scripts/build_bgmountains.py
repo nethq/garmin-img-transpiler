@@ -84,7 +84,7 @@ def write_xml(tree,path):
     tree.write(path,encoding='utf-8',xml_declaration=True)
     ET.parse(path)
 
-def make_configs(poi_base,render_base,catalog,folder,threshold,frequent_zoom=15,rare_zoom=17):
+def make_configs(poi_base,render_base,catalog,folder,threshold,frequent_zoom=15,rare_zoom=17,route_styles=()):
     # Keep entire upstream definitions! Replacing with a standalone tiny XML is
     # precisely what used to make ordinary semantic POIs disappear.
     poi=ET.parse(poi_base); proot=poi.getroot()
@@ -108,10 +108,15 @@ def make_configs(poi_base,render_base,catalog,folder,threshold,frequent_zoom=15,
         code=r['code']
         ET.SubElement(target,'type',tag='bgm_poi',value='type_'+code,
                       minzoom=str(frequent_zoom) if r['count']>=threshold else str(rare_zoom))
-    rp=folder/'rendering_types.bgmountains.xml'
+    # Route overlays have their OWN map-index main types, not only an ignored metadata tag.
+    # Do not map decorative overlays to 'highway=path': that would create bogus routing.
+    for route in route_styles:
+        if route.get('show','yes').lower() not in ('yes','1','true'): continue
+        ET.SubElement(target,'type',tag='bgm_route',value='type_'+route['code'],minzoom=route['display_minzoom'])
+    rp=folder/'rendering_types.bgmountains.xml' 
     write_xml(rendering,rp)
     summary={
-       'catalog_types':len(catalog),
+       'catalog_types':len(catalog), 'route_overlay_types':len(route_styles),
        'poi_count_in_catalog':sum(r.get('sample_count',r['count']) for r in catalog),
        'types_at_or_above_threshold':sum(r['count']>=threshold for r in catalog),
        'frequent_index_minzoom':frequent_zoom, 'rare_index_minzoom':rare_zoom,
@@ -124,10 +129,26 @@ def make_configs(poi_base,render_base,catalog,folder,threshold,frequent_zoom=15,
     (folder/'type-index-summary.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     return pa,rp,summary
 
-def make_style(icon_csv, folder, catalog):
-    """Optional addon for otherwise unclassified types using preinstalled OsmAnd icons.
+def read_route_styles(path):
+    with Path(path).open(encoding='utf-8-sig',newline='') as f: rows=list(csv.DictReader(f))
+    if not rows or not {'code','color','show','display_minzoom','width'}.issubset(rows[0]):
+        raise SystemExit('Invalid trail-styles.csv: '+str(path))
+    seen=set()
+    for r in rows:
+        code='0x'+format(int(r['code'],0),'x')
+        if code in seen: raise SystemExit('Duplicate route style type: '+code)
+        seen.add(code);r['code']=code
+        if not (len(r['color'])==7 and r['color'][0]=='#' and all(c in '0123456789abcdefABCDEF' for c in r['color'][1:])):
+            raise SystemExit('Invalid CSS color in route type '+code)
+        if not (0.2<=float(r['width'])<=15 and 1<=int(r['display_minzoom'])<=21):
+            raise SystemExit('Invalid route width/zoom '+code)
+    return rows
 
-    This cannot install Garmin bitmap icons and must be enabled in OsmAnd.
+def make_style(icon_csv,folder,catalog,route_styles=()):
+    """Selectable OsmAnd map style that maps BGM indexes to built-in icons.
+
+    The .obf itself only embeds geometry/tags. Android requires installing and
+    selecting this renderer; stock app ignores bgm_poi and bgm_route styling.
     """
     known={r['code'] for r in catalog}
     with Path(icon_csv).open(encoding='utf-8-sig',newline='') as f:
@@ -135,26 +156,37 @@ def make_style(icon_csv, folder, catalog):
     visible=[]
     for r in rows:
         code='0x'+format(int(r['code'],0),'x')
-        if code not in known:continue  # bbox builds are smaller than national config
-        if r['show_in_custom_style'].strip().lower() not in ('yes','true','1'):continue
+        if code not in known or r['show_in_custom_style'].strip().lower() not in ('yes','true','1'):
+            continue
         name=r['osmand_builtin_icon'].strip()
         if not name or not name.replace('_','').replace('-','').isalnum():
-            raise SystemExit('Invalid OsmAnd icon in '+str(icon_csv)+' for '+code)
+            raise SystemExit('Invalid OsmAnd icon: '+repr(name)+' code='+code)
         zoom=int(r['minzoom'])
-        if not 1<=zoom<=21:raise SystemExit('Invalid icon zoom for '+code)
+        if not 1<=zoom<=21: raise SystemExit('Bad icon zoom: '+code)
         visible.append((code,name,zoom))
-    root=ET.Element('renderingStyle',name='BGMountains custom POIs',depends='default',
-                    defaultColor='#fff8ee',version='1')
-    order=ET.SubElement(root,'order')
-    points=ET.SubElement(root,'point')
+    root=ET.Element('renderingStyle',name='BGMountains outdoor v0.9',
+                    depends='default',defaultColor='#fff8ee',version='1')
+    order=ET.SubElement(root,'order');points=ET.SubElement(root,'point')
+    lines=ET.SubElement(root,'line')
     for code,name,zoom in visible:
-        ET.SubElement(order,'case',tag='bgm_poi',value='type_'+code,minzoom=str(zoom),
-                      point='true',objectType='1',order='128')
+        ET.SubElement(order,'case',tag='bgm_poi',value='type_'+code,
+                      minzoom=str(zoom),point='true',objectType='1',order='120')
         ET.SubElement(points,'case',tag='bgm_poi',value='type_'+code,minzoom=str(zoom),
-                      icon=name,iconOrder='10',iconVisibleSize='12')
-    path=folder/'BGMountains-custom.render.xml'
+                      icon=name,iconOrder='11',iconVisibleSize='16',intersectionSizeFactor='0.7')
+    route_count=0
+    for route in route_styles:
+        if route.get('show','yes').lower() not in ('yes','true','1'):continue
+        route_count+=1
+        code=route['code'];zoom=route['display_minzoom']
+        ET.SubElement(order,'case',tag='bgm_route',value='type_'+code,
+                      minzoom=zoom,objectType='2',order='125')
+        # Color and width faithfully recover TYP base line color, but NOT its bitmap
+        # segment pattern. A precise pattern renderer requires a custom app build.
+        ET.SubElement(lines,'case',tag='bgm_route',value='type_'+code,
+                      minzoom=zoom,color=route['color'],strokeWidth=route['width'],cap='ROUND')
+    path=folder/'BGMountains-outdoor.render.xml'
     write_xml(ET.ElementTree(root),path)
-    return path,len(visible)
+    return path,len(visible),route_count
 
 def obtain_creator(cache, offline=False):
     """Opt-in download from official OsmAnd nightly build (large file)."""
@@ -210,7 +242,8 @@ def main():
     p.add_argument('--threshold',type=int,default=100,help='Frequent-type occurrence threshold')
     p.add_argument('--frequent-zoom',type=int,default=15,help='Store frequent raw map icons at zoom N and above')
     p.add_argument('--rare-zoom',type=int,default=17,help='Store rare raw map icons at zoom N and above')
-    p.add_argument('--icons-config',default=str(ROOT/'config/osmand-icons.csv'),help='OsmAnd built-in icon choices for custom addon style')
+    p.add_argument('--icons-config',default=str(ROOT/'config/osmand-icons.csv'),help='OsmAnd icon mappings')
+    p.add_argument('--trail-styles',default=str(ROOT/'config/trail-styles.csv'),help='Garmin TYP coloured route overlay styles')
     p.add_argument('--poi-overrides',default=str(ROOT/'config/poi-overrides-all-types.csv'))
     p.add_argument('--poi-name-fixes',default=str(ROOT/'config/poi-name-fixes.csv'))
     p.add_argument('--poi-labels',default=str(ROOT/'config/poi-labels-bg.csv'),help='Bulgarian prefixes for stable generated names on nameless Garmin POIs')
@@ -272,9 +305,10 @@ def main():
     folder=dest/'osmand-config';folder.mkdir(exist_ok=True)
     poi_base=base_xml(args.poi_base,creator,'poi',dest/'upstream',args.offline)
     rendering_base=base_xml(args.rendering_base,creator,'rendering',dest/'upstream',args.offline)
-    poi_cfg,render_cfg,summary=make_configs(poi_base,rendering_base,rows,folder,args.threshold,args.frequent_zoom,args.rare_zoom)
-    style,nicons=make_style(args.icons_config,folder,rows)
-    print('Indexed POI types:',summary['catalog_types'],'frequent:',summary['types_at_or_above_threshold'],'custom style icons:',nicons,flush=True)
+    route_styles=read_route_styles(args.trail_styles)
+    poi_cfg,render_cfg,summary=make_configs(poi_base,rendering_base,rows,folder,args.threshold,args.frequent_zoom,args.rare_zoom,route_styles)
+    style,nicons,nlines=make_style(args.icons_config,folder,rows,route_styles)
+    print('Indexed POI types:',summary['catalog_types'],'frequent:',summary['types_at_or_above_threshold'],'custom icons:',nicons,'colored route types:',nlines,flush=True)
     if args.prepare_only:
         print('PREPARED (no OBF generated). Files at:',dest)
         return 0
@@ -299,7 +333,7 @@ def main():
        'created_at_utc':dt.datetime.now(dt.timezone.utc).isoformat(),
        'obf':str(built),'obf_bytes':built.stat().st_size,
        'input_osm':str(osm),'poi_types':str(poi_cfg),'rendering_types':str(render_cfg),
-       'custom_style':str(style), 'custom_style_icon_rules':nicons,
+       'custom_style':str(style), 'custom_style_icon_rules':nicons, 'custom_route_rules':nlines,
        'summary':summary
     },ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     return 0
