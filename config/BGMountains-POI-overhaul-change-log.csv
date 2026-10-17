@@ -1,0 +1,117 @@
+code,name_contains,count,old_mode,new_mode,old_tags,new_tags,basis,special_case
+0x2a07,,227,replace,replace,bgm:landmark=unknown;bgm:unclassified=yes,amenity=fast_food,snacks/bakeries and kiosks from sampled names; bistro exceptions,no
+0x2a0e,,525,replace,replace,shop=yes,amenity=cafe,sampled names cafe/tea/confectionery,no
+0x2c06,,57,replace,replace,bgm:unclassified=yes,amenity=university,"sampled names universities/faculties, one medical exception",no
+0x2c07,,20,replace,replace,bgm:unclassified=yes,tourism=zoo,sampled names zoos/animal parks,no
+0x2c08,,1328,replace,replace,leisure=horse_riding,leisure=sports_centre,sports venues of varied kinds: not horse-riding by default; name overrides for specific sports,no
+0x2d01,,68,replace,replace,bgm:unclassified=yes,amenity=theatre,"sampled names drama theatres/opera, cinemas as exceptions",no
+0x2d02,,434,replace,replace,bgm:landmark=unknown;bgm:unclassified=yes,amenity=bar,"sampled names bars/clubs, cafe/restaurant exceptions",no
+0x2d03,,57,replace,replace,bgm:unclassified=yes,amenity=cinema,"sampled names cinemas, theatre exception",no
+0x2e03,,502,replace,replace,shop=yes,shop=supermarket,sampled names Billa/Lidl/Kaufland supermarkets,no
+0x2e04,,66,replace,replace,bgm:unclassified=yes,amenity=marketplace,"samples markets and malls, mall override",no
+0x2e0a,,159,replace,replace,shop=car,shop=yes,"mixed automobile, winery, stationery, toys; shop=car incorrect globally",no
+0x2e0b,,52,replace,replace,bgm:unclassified=yes,shop=electronics,sampled technology/electronics shops,no
+0x2f08,,123,replace,replace,bgm:landmark=unknown;bgm:unclassified=yes,railway=station;station=subway,station names correspond to Sofia metro stations; source is metro,no
+0x2f0a,,4,replace,replace,amenity=place_of_worship;religion=jewish;garmin:legend=synagogue,amenity=place_of_worship;religion=jewish,sampled names all synagogues,no
+0x2f0b,,1499,replace,replace,leisure=track,amenity=parking,"source examples overwhelmingly parking, old leisure=track incorrect; name exceptions",no
+0x3001,,170,replace,replace,bgm:unclassified=yes,amenity=police,"mixed police/fire brigades, name exceptions",no
+0x3007,,132,replace,replace,man_made=pumping_station,amenity=courthouse,source courts/prosecutors and pump stations; name exceptions,no
+0x4700,,101,replace,replace,garmin:legend=port;bgm:legend=port;bgm:needs_geographic_review=yes,harbour=yes;garmin:legend=port;bgm:needs_geographic_review=yes,"source port symbol, inland samples mean do NOT map to leisure=marina",no
+0x6402,,6186,replace,replace,tourism=wilderness_hut;building=yes;garmin:legend=building,building=yes;garmin:legend=building,"generic building: source includes offices, substations, military buildings; NO blanket shelter tag",no
+0x6403,,1729,replace,replace,landuse=cemetery;garmin:legend=graveyard_tombstone,historic=wayside_shrine;garmin:legend=graveyard_tombstone,source mostly votive/obrok sites and individual graves; NOT every point a cemetery; name exceptions,no
+0x6405,,260,replace,replace,tourism=wilderness_hut;building=hut;garmin:legend=hunting_lodge,building=hut;garmin:legend=hunting_lodge;bgm:access=unknown,hunting lodge is not necessarily a public wilderness hut,no
+0x640a,,2095,replace,replace,hazard=yes;garmin:legend=danger;bgm:unclassified=yes,hazard=yes;garmin:legend=danger,"hazard is semantic, remove incorrect bgm:unclassified",no
+0x6413,,76,replace,replace,garmin:legend=tunnel;bgm:unclassified=yes,tunnel=yes;garmin:legend=tunnel,"point tunnel indicator only, does not create road segment tunnel",no
+0x6414,,32922,replace,replace,amenity=drinking_water;garmin:legend=drinking_water,amenity=drinking_water;man_made=water_tap;garmin:legend=drinking_water,"legend + v18 dual index; potable status implied by original symbol, inspect dry sources",no
+0x6419,,113,replace,replace,power=generator;generator:source=solar,power=substation,substations common; no global solar-generator claim,no
+0x6500,,31214,replace,replace,man_made=water_intake;garmin:legend=reservoir,man_made=water_intake;amenity=water_point;drinking_water=unknown;garmin:legend=reservoir;bgm:compat=water_point_unverified,PRIVATE-ONLY v18 category recovery: catchment does not prove public potable water; verify access/quality,no
+0x6502,,1864,replace,replace,ford=yes;garmin:legend=river_passage;bgm:unclassified=yes,ford=yes;garmin:legend=river_passage,"ford is semantic, remove incorrect bgm:unclassified",no
+0x6503,,760,replace,replace,bgm:trail_junction=yes;garmin:legend=crossroad;bgm:unclassified=yes,bgm:trail_junction=yes;garmin:legend=crossroad,do not fabricate guideposts where only a route intersection is indicated,no
+0x650b,,8767,replace,replace,trailblazed=yes;garmin:legend=winter_marking;bgm:unclassified=yes,tourism=information;information=trail_blaze;hiking=yes;garmin:legend=winter_marking,accurate point trail mark; not guaranteed searchable POI in stock OsmAnd,no
+0x6600,,66206,replace,append,bgm:spot_height=yes;garmin:legend=triangulation;bgm:unclassified=yes,bgm:spot_height=yes;garmin:legend=triangulation,"retain source ele metadata, DO NOT assign place=locality",no
+0x6601,,165,replace,replace,bgm:landmark=natural_phenomenon;garmin:legend=natural_phenomenon;bgm:unclassified=yes,tourism=attraction;bgm:landmark=natural_phenomenon;garmin:legend=natural_phenomenon,"natural phenomenon point, generic visitor interest provisional",no
+0x6603,,26366,replace,append,man_made=survey_point;garmin:legend=triangulation,man_made=survey_point;garmin:legend=triangulation,retain source elevation and annotation; APPEND mode only,no
+0x660a,,275,replace,replace,amenity=shelter;shelter_type=basic_hut;garmin:legend=refuge,amenity=shelter;garmin:legend=refuge,"source refuge; no assumption of heating, beds or 24h access",no
+0x660b,,2612,replace,replace,trailblazed=yes;garmin:legend=mark;bgm:unclassified=yes,tourism=information;information=trail_blaze;hiking=yes;garmin:legend=mark,accurate point blaze; trailblazed belongs on paths not isolated nodes,no
+0x661c,,1169,replace,replace,bgm:landmark=mound;bgm:unclassified=yes,bgm:landmark=mound,named mounds not all archaeological tumuli or hills; terrain annotation,no
+0x661d,,1412,replace,replace,tourism=wilderness_hut;building=agricultural,building=agricultural;bgm:landmark=livestock_building,"source is primarily agricultural/sheepfold, not public hiking hut",no
+0x661e,,979,replace,replace,amenity=shelter,amenity=shelter;garmin:legend=shelter,roofed shelter/canopy; do not assume overnight lodging,no
+0x6414,Сух,32922,,replace,,man_made=water_tap;drinking_water=no;garmin:legend=drinking_water;bgm:needs_review=yes,"V094 CONDITIONAL: named dry fountain, suppress implied potable water",yes
+0x6414,сух,32922,,replace,,man_made=water_tap;drinking_water=no;garmin:legend=drinking_water;bgm:needs_review=yes,"V094 CONDITIONAL: named dry fountain, suppress implied potable water",yes
+0x6414,(Сух,32922,,replace,,man_made=water_tap;drinking_water=no;garmin:legend=drinking_water;bgm:needs_review=yes,"V094 CONDITIONAL: named dry fountain, suppress implied potable water",yes
+0x6414,пресъх,32922,,replace,,man_made=water_tap;drinking_water=no;garmin:legend=drinking_water;bgm:needs_review=yes,"V094 CONDITIONAL: named dry fountain, suppress implied potable water",yes
+0x6500,Шах,31214,,replace,,man_made=water_intake;garmin:legend=reservoir;drinking_water=unknown,"V094 CONDITIONAL: water installation shaft, remove v18 water-point compatibility",yes
+0x6500,шах,31214,,replace,,man_made=water_intake;garmin:legend=reservoir;drinking_water=unknown,"V094 CONDITIONAL: water installation shaft, remove v18 water-point compatibility",yes
+0x6500,шах.,31214,,replace,,man_made=water_intake;garmin:legend=reservoir;drinking_water=unknown,"V094 CONDITIONAL: water installation shaft, remove v18 water-point compatibility",yes
+0x6500,Фонтан,31214,,replace,,amenity=fountain;garmin:legend=reservoir;drinking_water=unknown,"V094 CONDITIONAL: named fountain, do not assume potable",yes
+0x6500,фонтан,31214,,replace,,amenity=fountain;garmin:legend=reservoir;drinking_water=unknown,"V094 CONDITIONAL: named fountain, do not assume potable",yes
+0x6402,Заслон,6186,,replace,,amenity=shelter;building=yes;garmin:legend=building,V094 CONDITIONAL: building explicitly named a shelter; access unverified,yes
+0x661d,Заслон,1412,,replace,,amenity=shelter;building=hut;bgm:access=unknown,V094 CONDITIONAL: agricultural category explicitly named shelter; access unknown,yes
+0x6405,Заслон,260,,replace,,amenity=shelter;building=hut;garmin:legend=hunting_lodge;bgm:access=unknown,V094 CONDITIONAL: hunting hut specifically called shelter; access unknown,yes
+0x6402,заслон,6186,,replace,,amenity=shelter;building=yes;garmin:legend=building,V094 CONDITIONAL: building explicitly named a shelter; access unverified,yes
+0x661d,заслон,1412,,replace,,amenity=shelter;building=hut;bgm:access=unknown,V094 CONDITIONAL: agricultural category explicitly named shelter; access unknown,yes
+0x6405,заслон,260,,replace,,amenity=shelter;building=hut;garmin:legend=hunting_lodge;bgm:access=unknown,V094 CONDITIONAL: hunting hut specifically called shelter; access unknown,yes
+0x6402,Хижа,6186,,replace,,tourism=alpine_hut;building=yes;garmin:legend=building,V094 CONDITIONAL: building explicitly named mountain hut; independently confirm public availability,yes
+0x661d,Хижа,1412,,replace,,tourism=alpine_hut;building=yes,"V094 CONDITIONAL: agricultural category named hut, verify accommodation",yes
+0x6402,хижа,6186,,replace,,tourism=alpine_hut;building=yes;garmin:legend=building,V094 CONDITIONAL: building explicitly named mountain hut; independently confirm public availability,yes
+0x661d,хижа,1412,,replace,,tourism=alpine_hut;building=yes,"V094 CONDITIONAL: agricultural category named hut, verify accommodation",yes
+0x2c08,Стадион,1328,,replace,,leisure=stadium,V094 CONDITIONAL: stadium name,yes
+0x2c08,стадион,1328,,replace,,leisure=stadium,V094 CONDITIONAL: stadium name,yes
+0x2c08,Детска площадка,1328,,replace,,leisure=playground,V094 CONDITIONAL: children playground name,yes
+0x2c08,детска площадка,1328,,replace,,leisure=playground,V094 CONDITIONAL: children playground name,yes
+0x2c08,ледена пързалка,1328,,replace,,leisure=ice_rink,V094 CONDITIONAL: ice rink name,yes
+0x2c08,Ледена пързалка,1328,,replace,,leisure=ice_rink,V094 CONDITIONAL: ice rink name,yes
+0x2c08,игрище,1328,,replace,,leisure=pitch,V094 CONDITIONAL: sports pitch name,yes
+0x2c08,Игрище,1328,,replace,,leisure=pitch,V094 CONDITIONAL: sports pitch name,yes
+0x2c08,Колодрум,1328,,replace,,leisure=track,V094 CONDITIONAL: velodrome name,yes
+0x2c08,колодрум,1328,,replace,,leisure=track,V094 CONDITIONAL: velodrome name,yes
+0x2a07,Бистро,227,,replace,,amenity=restaurant,V094 CONDITIONAL: named bistro,yes
+0x2a07,бистро,227,,replace,,amenity=restaurant,V094 CONDITIONAL: named bistro,yes
+0x2a07,Хижа,227,,replace,,tourism=alpine_hut,V094 CONDITIONAL: named hiking hut,yes
+0x2a07,хижа,227,,replace,,tourism=alpine_hut,V094 CONDITIONAL: named hiking hut,yes
+0x2d02,Кафе,434,,replace,,amenity=cafe,V094 CONDITIONAL: explicit cafe,yes
+0x2d02,кафе,434,,replace,,amenity=cafe,V094 CONDITIONAL: explicit cafe,yes
+0x2d02,Ресторант,434,,replace,,amenity=restaurant,V094 CONDITIONAL: named restaurant,yes
+0x2d02,ресторант,434,,replace,,amenity=restaurant,V094 CONDITIONAL: named restaurant,yes
+0x2d02,Grill,434,,replace,,amenity=restaurant,V094 CONDITIONAL: named restaurant,yes
+0x2d02,грил,434,,replace,,amenity=restaurant,V094 CONDITIONAL: named restaurant,yes
+0x2d01,Кино,68,,replace,,amenity=cinema,V094 CONDITIONAL: explicit cinema,yes
+0x2d01,кино,68,,replace,,amenity=cinema,V094 CONDITIONAL: explicit cinema,yes
+0x2d01,Cinema,68,,replace,,amenity=cinema,V094 CONDITIONAL: explicit cinema,yes
+0x2d01,синема,68,,replace,,amenity=cinema,V094 CONDITIONAL: explicit cinema,yes
+0x2d03,театър,57,,replace,,amenity=theatre,V094 CONDITIONAL: explicit theatre,yes
+0x2d03,Театър,57,,replace,,amenity=theatre,V094 CONDITIONAL: explicit theatre,yes
+0x2e04,Мол,66,,replace,,shop=mall,V094 CONDITIONAL: named shopping mall,yes
+0x2e04,МОЛ,66,,replace,,shop=mall,V094 CONDITIONAL: named shopping mall,yes
+0x2e04,мол,66,,replace,,shop=mall,V094 CONDITIONAL: named shopping mall,yes
+0x2e04,Mall,66,,replace,,shop=mall,V094 CONDITIONAL: named shopping mall,yes
+0x2e06,Хранителни,348,,replace,,shop=convenience,V094 CONDITIONAL: named food/convenience store,yes
+0x2e06,хранителни,348,,replace,,shop=convenience,V094 CONDITIONAL: named food/convenience store,yes
+0x2e06,магазин,348,,replace,,shop=convenience,V094 CONDITIONAL: named food/convenience store,yes
+0x2e06,Минимаркет,348,,replace,,shop=convenience,V094 CONDITIONAL: named food/convenience store,yes
+0x3007,Помпена,132,,replace,,man_made=pumping_station,V094 CONDITIONAL: named water pumping station,yes
+0x3007,помпена,132,,replace,,man_made=pumping_station,V094 CONDITIONAL: named water pumping station,yes
+0x3007,Пречиствателна,132,,replace,,man_made=wastewater_plant,V094 CONDITIONAL: named treatment facility; subtype may need verification,yes
+0x3007,пречиствателна,132,,replace,,man_made=wastewater_plant,V094 CONDITIONAL: named treatment facility; subtype may need verification,yes
+0x3007,затвор,132,,replace,,amenity=prison,V094 CONDITIONAL: named prison,yes
+0x3007,Затвор,132,,replace,,amenity=prison,V094 CONDITIONAL: named prison,yes
+0x3001,Пожарна,170,,replace,,amenity=fire_station,V094 CONDITIONAL: named fire station,yes
+0x3001,пожарна,170,,replace,,amenity=fire_station,V094 CONDITIONAL: named fire station,yes
+0x6419,ВЕЦ,113,,replace,,power=plant,V094 CONDITIONAL: named generation site; source-specific classification,yes
+0x6419,фотоволтаична,113,,replace,,power=plant,V094 CONDITIONAL: named generation site; source-specific classification,yes
+0x6419,Фотоволтаична,113,,replace,,power=plant,V094 CONDITIONAL: named generation site; source-specific classification,yes
+0x2f0b,Екопътека,1499,,replace,,place=locality;bgm:needs_review=yes,V094 CONDITIONAL: not a confirmed parking lot; no false parking icon,yes
+0x2f0b,екопътека,1499,,replace,,place=locality;bgm:needs_review=yes,V094 CONDITIONAL: not a confirmed parking lot; no false parking icon,yes
+0x2f0b,Поляна,1499,,replace,,place=locality;bgm:needs_review=yes,V094 CONDITIONAL: not a confirmed parking lot; no false parking icon,yes
+0x2f0b,Подземен,1499,,replace,,amenity=parking;parking=underground,V094 CONDITIONAL: parking explicitly underground,yes
+0x2f0b,подземен,1499,,replace,,amenity=parking;parking=underground,V094 CONDITIONAL: parking explicitly underground,yes
+0x6403,Гроб,1729,,replace,,historic=tomb;garmin:legend=graveyard_tombstone,V094 CONDITIONAL: individual grave not a cemetery or shrine,yes
+0x6403,гроб,1729,,replace,,historic=tomb;garmin:legend=graveyard_tombstone,V094 CONDITIONAL: individual grave not a cemetery or shrine,yes
+0x641c,Автогара,3120,,replace,,amenity=bus_station;garmin:legend=bus_stop_station,V094 CONDITIONAL: bus station explicitly named,yes
+0x640e,Автогара,977,,replace,,amenity=bus_station;garmin:legend=bus_stop_station,V094 CONDITIONAL: bus station explicitly named,yes
+0x641c,автогара,3120,,replace,,amenity=bus_station;garmin:legend=bus_stop_station,V094 CONDITIONAL: bus station explicitly named,yes
+0x640e,автогара,977,,replace,,amenity=bus_station;garmin:legend=bus_stop_station,V094 CONDITIONAL: bus station explicitly named,yes
+0x2c06,ВМА,57,,replace,,amenity=hospital,V094 CONDITIONAL: Military Medical Academy hospital,yes
+0x2b00,Къщи за гости,1558,,replace,,tourism=guest_house,V094 CONDITIONAL: guest house explicitly named,yes
+0x2b00,къща за гости,1558,,replace,,tourism=guest_house,V094 CONDITIONAL: guest house explicitly named,yes
+0x2b00,Къща за гости,1558,,replace,,tourism=guest_house,V094 CONDITIONAL: guest house explicitly named,yes
