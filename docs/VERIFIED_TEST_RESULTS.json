@@ -1,0 +1,17 @@
+{
+  "release": "v0.95",
+  "code_groups": 6,
+  "test_groups_passed": 6,
+  "real_img_source": "gmapsupp(2).img (original supplied, 441942016 bytes)",
+  "real_regional_bbox": "25.05,42.43,25.16,42.54",
+  "real_regional_pois": 427,
+  "real_regional_routes": 6,
+  "parallel_workers_tested": [
+    1,
+    8
+  ],
+  "serial_parallel_poi_tags_names_equal": true,
+  "conditional_dry_water_result": "man_made=water_tap;drinking_water=no; amenity=drinking_water absent",
+  "java_real_obf_build": "NOT TESTED (official host unavailable)",
+  "obf_mock_orchestration": "PASSED; not a real OBF binary"
+}

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""v0.93: streaming IMG/OSM native-OsmAnd translation and honest QA.
-Only user-editable controls: config/poi-mapping.csv and config/line-mapping.csv.
+"""v0.95: streaming IMG/OSM native-OsmAnd translation and honest QA.
+Only user-editable controls: config/BGMountains-native-poi-mapping-v094.csv and config/line-mapping.csv.
 """
 import argparse,base64,collections,csv,hashlib,json,pathlib,re,sqlite3,sys,xml.etree.ElementTree as ET
 from xml.sax.saxutils import escape,quoteattr
@@ -34,14 +34,42 @@ def read_csv(p):
         lines=(line for line in f if not line.startswith('#'))
         yield from csv.DictReader(lines)
 def code(value):return hex(int(value,0)).lower()
+def read_poi_configuration(path):
+    """Read one canonical POI config: unique base rule per code and optional
+    ordered name_contains rules (a v0.94 feature previously lost in Python).
+    The v0.93/0.94 15-column files remain backward-compatible.
+    """
+    bases={}; conditional=[]
+    for line_no,row in enumerate(read_csv(path),start=2):
+        try:c=code(row['code'])
+        except Exception as ex:raise ValueError(f'Invalid POI code at {path}:{line_no}: {row}') from ex
+        row=dict(row);row['code']=c
+        act=(row.get('action') or 'replace').strip().lower()
+        if act not in ('replace','append','raw','drop'):
+            raise ValueError(f'Invalid action at {path}:{line_no}: {act}')
+        tags_from_string(row.get('osm_tags',''))
+        if row.get('name_contains',''):
+            conditional.append(row)
+        else:
+            if c in bases:raise ValueError(f'Duplicate POI base mapping {c} at {path}:{line_no}')
+            bases[c]=row
+    for row in conditional:
+        if row['code'] not in bases:raise ValueError(f'Conditional rule has no base: {row["code"]}')
+    return bases,conditional
+
 def mapping(path):
+    """Base POI map; conditional rules are applied by the C++ override stage."""
+    return read_poi_configuration(path)[0]
+
+def line_mapping(path):
     ret={}
     for row in read_csv(path):
         try:c=code(row['code'])
-        except Exception as ex:raise ValueError('Invalid code in '+str(path)+': '+str(row)) from ex
-        if c in ret:raise ValueError(f'Duplicate code {c} in {path}')
+        except Exception as ex:raise ValueError('Invalid line code in '+str(path)+': '+str(row)) from ex
+        if c in ret:raise ValueError(f'Duplicate line code {c} in {path}')
         ret[c]=row
     return ret
+
 def tags_from_string(v):
     d={}
     for x in v.split(';'):
@@ -86,7 +114,7 @@ def add_native_unknown_fallback(elem,tags,rule):
         tags['bgm:generated_name']='yes'
     return True
 
-def make_cpp_rules(pois,out,labels):
+def make_cpp_rules(pois,out,labels,conditional=()):
     """C++ v0.9 uses these internal stage files; they are NOT user control files."""
     with open(out,'w',encoding='utf-8',newline='') as f,open(labels,'w',encoding='utf-8',newline='') as g:
         w=csv.writer(f);w.writerow(['code','name_contains','mode','tags','note'])
@@ -99,6 +127,15 @@ def make_cpp_rules(pois,out,labels):
             if action=='drop':vals={}
             w.writerow([c,'',action,';'.join(k+'='+v for k,v in vals.items()),'v0.92 compiled from poi-mapping.csv'])
             if row.get('label_bg'):l.writerow([c,row['label_bg']])
+        # Order matters: base rule first, then the explicit name-specific rules
+        # in CSV order. C++ evaluates these against ORIGINAL Garmin names.
+        for row in conditional:
+            c=row['code'];action=(row.get('action') or 'replace').strip().lower()
+            vals=tags_from_string(row.get('osm_tags',''))
+            if action=='raw':action='keep_raw';vals={}
+            w.writerow([c,row['name_contains'],action,
+                ';'.join(k+'='+v for k,v in vals.items()),
+                'v0.95 name-specific rule: '+row.get('note','')])
 
 def inspect_counts(osm,pois,lines,out,strict=False):
     seen=collections.Counter();unresolved=collections.Counter();annotations=collections.Counter();fallback=collections.Counter();bad=collections.Counter();routes=collections.Counter();examples={};category=collections.Counter();n=0
@@ -143,7 +180,7 @@ def transform(source,dest,pois,lines,report,strict=False):
     db.execute('CREATE TABLE edges (code TEXT, way INTEGER, a INTEGER, b INTEGER)')
     poi_count=0; ways=0; candidate_edges=0; emitted=0; synthetic=0; kinds=collections.Counter();seen=collections.Counter();gaps=collections.Counter()
     with open(source,'rb') as inp,open(dest,'w',encoding='utf-8') as out:
-        out.write('<?xml version="1.0" encoding="UTF-8"?>\n<osm version="0.6" generator="garmin2osm-v0.93" upload="never">\n')
+        out.write('<?xml version="1.0" encoding="UTF-8"?>\n<osm version="0.6" generator="garmin2osm-v0.95" upload="never">\n')
         for el in top_level_elements(inp):
             if el.tag=='node':
                 tags=tagdict(el)
@@ -268,10 +305,10 @@ def main():
     a=p.parse_args()
     if a.mode=='template':res=template(a.catalog,a.poi,a.lines,a.osm)
     else:
-        ps=mapping(a.poi);ls=mapping(a.lines)
+        ps,conditional=read_poi_configuration(a.poi);ls=line_mapping(a.lines)
         if a.mode=='prepare':
             out=pathlib.Path(a.out);out.mkdir(parents=True,exist_ok=True)
-            make_cpp_rules(ps,out/'cpp-poi-override.csv',out/'cpp-name-labels.csv');res={'poi_types':len(ps),'line_types':len(ls)}
+            make_cpp_rules(ps,out/'cpp-poi-override.csv',out/'cpp-name-labels.csv',conditional);res={'poi_types':len(ps),'name_specific_rules':len(conditional),'line_types':len(ls)}
         elif a.mode=='transform':res=transform(a.osm,a.out,ps,ls,a.report)
         else:res=inspect_counts(a.osm,ps,ls,a.out,a.strict)
     print(json.dumps(res,ensure_ascii=False,indent=2));return 0

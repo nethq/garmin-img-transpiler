@@ -1,341 +1,159 @@
 #!/usr/bin/env python3
-"""One-command BGMountains IMG -> reviewed OSM -> custom indexed OsmAnd OBF.
+"""BGMountains v0.95 native OsmAnd pipeline: only TWO editable mapping files.
 
-Only Python 3 stdlib needed for orchestration; CMake/C++/OsmAndMapCreator are external.
+Never needs extracted Garmin icons or custom styles on Android.
 """
 from __future__ import annotations
-import argparse
-import csv
-import datetime as dt
-import hashlib
-import json
-import os
-from pathlib import Path
-import shutil
-import subprocess
-import sys
-import urllib.request
-import xml.etree.ElementTree as ET
+import argparse,datetime,hashlib,json,os,pathlib,shutil,subprocess,sys,time,urllib.request,zipfile
+ROOT=pathlib.Path(__file__).resolve().parents[1]
+TRANSLATOR=ROOT/'scripts/native_translate.py'
 
-ROOT = Path(__file__).resolve().parents[1]
-UPSTREAM = {
- 'poi': 'https://raw.githubusercontent.com/osmandapp/OsmAnd-resources/master/poi/poi_types.xml',
- 'rendering': 'https://raw.githubusercontent.com/osmandapp/OsmAnd-resources/master/obf_creation/rendering_types.xml'
-}
-
-def call(argv, cwd=None, log=None, env=None):
-    argv = [str(s) for s in argv]
-    print('+', ' '.join(shlex_quote(s) for s in argv), flush=True)
+def run(*args,log=None,cwd=None,env=None):
+    cmd=[str(x) for x in args];print('+',' '.join(cmd),flush=True)
     if log:
-        with Path(log).open('w', encoding='utf-8') as output:
-            r = subprocess.run(argv, cwd=cwd, env=env, stdout=output, stderr=subprocess.STDOUT)
-        if r.returncode:
-            print('Command failed; last log lines:', file=sys.stderr)
-            print('\n'.join(Path(log).read_text(errors='replace').splitlines()[-35:]), file=sys.stderr)
-            raise SystemExit(r.returncode)
-    else:
-        subprocess.run(argv, cwd=cwd, env=env, check=True)
+        with open(log,'w',encoding='utf-8') as f:
+            p=subprocess.run(cmd,stdout=f,stderr=subprocess.STDOUT,cwd=cwd,env=env)
+        if p.returncode:
+            print(''.join(pathlib.Path(log).read_text(errors='replace').splitlines(True)[-40:]),file=sys.stderr)
+            raise RuntimeError('Command failed, see '+str(log))
+    else:subprocess.run(cmd,check=True,cwd=cwd,env=env)
 
-def shlex_quote(s):
-    import shlex
-    return shlex.quote(s)
+def creator_dir(x):
+    if not x:return None
+    p=pathlib.Path(x).expanduser().resolve();p=p.parent if p.name=='utilities.sh' else p
+    if not (p/'utilities.sh').exists():raise FileNotFoundError('MapCreator utilities.sh missing: '+str(p))
+    return p
 
-def base_xml(provided, creator, key, cache, offline):
-    if provided:
-        p = Path(provided).expanduser().resolve()
-        if not p.is_file(): raise SystemExit('Upstream XML not found: '+str(p))
-        return p
-    names = ['poi_types.xml'] if key == 'poi' else ['rendering_types.xml']
-    if creator:
-        for prefix in [creator, creator/'resources', creator/'config', creator/'poi', creator/'obf_creation']:
-            for name in names:
-                candidate = prefix/name
-                if candidate.is_file(): return candidate.resolve()
-    target = cache/names[0]
-    if target.is_file(): return target
-    if offline:
-        raise SystemExit('Missing upstream '+names[0]+': pass --'+key+'-base FILE or allow download')
-    target.parent.mkdir(parents=True,exist_ok=True)
-    print('Fetching official OsmAnd '+names[0]+' (first run only) ...', flush=True)
-    try:
-        with urllib.request.urlopen(UPSTREAM[key], timeout=50) as u, target.open('wb') as out:
-            shutil.copyfileobj(u,out)
-    except Exception as ex:
-        target.unlink(missing_ok=True)
-        raise SystemExit('Cannot fetch official OsmAnd '+names[0]+': '+str(ex)+'\nProvide --'+key+'-base FILE manually.')
-    return target
+def fetch_creator(target):
+    extracted=target/'unpacked';c=list(extracted.rglob('utilities.sh')) if extracted.exists() else []
+    if c:return c[0].parent
+    target.mkdir(parents=True,exist_ok=True)
+    url='https://download.osmand.net/latest-night-build/OsmAndMapCreator-main.zip'
+    zip_path=target/'OsmAndMapCreator-main.zip'
+    if not zip_path.exists():
+        print('Fetching official MapCreator:',url)
+        with urllib.request.urlopen(url,timeout=120) as src,open(zip_path,'wb') as dst:shutil.copyfileobj(src,dst)
+    with zipfile.ZipFile(zip_path) as z:
+        for entry in z.infolist():
+            parts=pathlib.PurePosixPath(entry.filename)
+            if parts.is_absolute() or '..' in parts.parts:raise ValueError('Unsafe creator ZIP entry')
+        z.extractall(extracted)
+    c=list(extracted.rglob('utilities.sh'))
+    if not c:raise FileNotFoundError('Creator ZIP lacks utilities.sh')
+    for f in extracted.rglob('*.sh'):f.chmod(f.stat().st_mode|0o111)
+    return c[0].parent
 
-def catalog_rows(p):
-    with Path(p).open('r',encoding='utf-8-sig',newline='') as f:
-        rows=list(csv.DictReader(f))
-    if not rows or not {'code','count','has_typ_icon'}.issubset(rows[0]):
-        raise SystemExit('Invalid POI catalog (expected code,count,has_typ_icon): '+str(p))
-    out=[]
-    seen=set()
-    for r in rows:
-        code='0x'+format(int(r['code'],0),'x')
-        if code in seen:raise SystemExit('Duplicate code in catalog: '+code)
-        seen.add(code)
-        out.append(dict(r,code=code,count=int(r['count'])))
-    return sorted(out,key=lambda r:(-r['count'],int(r['code'],0)))
-
-def write_xml(tree,path):
-    ET.indent(tree,space='  ')
-    tree.write(path,encoding='utf-8',xml_declaration=True)
-    ET.parse(path)
-
-def make_configs(poi_base,render_base,catalog,folder,threshold,frequent_zoom=15,rare_zoom=17,route_styles=()):
-    # Keep entire upstream definitions! Replacing with a standalone tiny XML is
-    # precisely what used to make ordinary semantic POIs disappear.
-    poi=ET.parse(poi_base); proot=poi.getroot()
-    if proot.tag!='poi_types':raise SystemExit('Not an OsmAnd poi_types.xml: '+str(poi_base))
-    if any(c.get('name')=='bgmountains_raw' for c in proot.findall('poi_category')):
-        raise SystemExit('Input poi_types.xml already has a bgmountains_raw category')
-    cat=ET.SubElement(proot,'poi_category',name='bgmountains_raw', default_tag='bgm_poi', no_edit='true')
-    for r in catalog:
-        code=r['code']
-        ET.SubElement(cat,'poi_type',name='bgm_'+code.replace('0x',''),tag='bgm_poi',value='type_'+code,no_edit='true')
-    pa=folder/'poi_types.bgmountains.xml'
-    write_xml(poi,pa)
-
-    rendering=ET.parse(render_base); rroot=rendering.getroot()
-    if rroot.tag != 'osmand_types':
-        # OsmAnd resources use the tag 'rendering_types'; fail instead of dropping all built-in types.
-        raise SystemExit('Unexpected OsmAnd rendering_types.xml root: '+rroot.tag)
-    cats=[c for c in rroot.iter('category') if c.get('name')=='user_defined']
-    target=cats[0] if cats else ET.SubElement(rroot,'category',name='user_defined')
-    for r in catalog:
-        code=r['code']
-        ET.SubElement(target,'type',tag='bgm_poi',value='type_'+code,
-                      minzoom=str(frequent_zoom) if r['count']>=threshold else str(rare_zoom))
-    # Route overlays have their OWN map-index main types, not only an ignored metadata tag.
-    # Do not map decorative overlays to 'highway=path': that would create bogus routing.
-    for route in route_styles:
-        if route.get('show','yes').lower() not in ('yes','1','true'): continue
-        ET.SubElement(target,'type',tag='bgm_route',value='type_'+route['code'],minzoom=route['display_minzoom'])
-    rp=folder/'rendering_types.bgmountains.xml' 
-    write_xml(rendering,rp)
-    summary={
-       'catalog_types':len(catalog), 'route_overlay_types':len(route_styles),
-       'poi_count_in_catalog':sum(r.get('sample_count',r['count']) for r in catalog),
-       'types_at_or_above_threshold':sum(r['count']>=threshold for r in catalog),
-       'frequent_index_minzoom':frequent_zoom, 'rare_index_minzoom':rare_zoom,
-       'items_at_or_above_threshold':sum(r.get('sample_count',r['count']) for r in catalog if r['count']>=threshold),
-       'types_with_extracted_icon':sum(r['has_typ_icon']=='yes' for r in catalog),
-       'poi_base_sha256':hashlib.sha256(Path(poi_base).read_bytes()).hexdigest(),
-       'rendering_base_sha256':hashlib.sha256(Path(render_base).read_bytes()).hexdigest(),
-       'note':'Local-only compat data; synthetic information icons are not truth about an informational board. All Garmin hex POI types indexed; high-frequency raw types inserted into OBF map index from selected frequent zoom; low-frequency from selected rare zoom. Rendering exact Garmin icon PNGs requires installing compatible icons/style in OsmAnd, not merely compiling an OBF.'
-    }
-    (folder/'type-index-summary.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
-    return pa,rp,summary
-
-def read_route_styles(path):
-    with Path(path).open(encoding='utf-8-sig',newline='') as f: rows=list(csv.DictReader(f))
-    if not rows or not {'code','color','show','display_minzoom','width'}.issubset(rows[0]):
-        raise SystemExit('Invalid trail-styles.csv: '+str(path))
-    seen=set()
-    for r in rows:
-        code='0x'+format(int(r['code'],0),'x')
-        if code in seen: raise SystemExit('Duplicate route style type: '+code)
-        seen.add(code);r['code']=code
-        if not (len(r['color'])==7 and r['color'][0]=='#' and all(c in '0123456789abcdefABCDEF' for c in r['color'][1:])):
-            raise SystemExit('Invalid CSS color in route type '+code)
-        if not (0.2<=float(r['width'])<=15 and 1<=int(r['display_minzoom'])<=21):
-            raise SystemExit('Invalid route width/zoom '+code)
-    return rows
-
-def make_style(icon_csv,folder,catalog,route_styles=()):
-    """Selectable OsmAnd map style that maps BGM indexes to built-in icons.
-
-    The .obf itself only embeds geometry/tags. Android requires installing and
-    selecting this renderer; stock app ignores bgm_poi and bgm_route styling.
+def disk_preflight(out, source_bytes, extra_gb=0):
+    """Conservative warning/blocking check before disk-heavy MapCreator stage.
+    In experience 6 GiB OSM has required >25 GiB scratch. 5x + 1 GiB
+    is intentionally approximate, not a guarantee of completion.
     """
-    known={r['code'] for r in catalog}
-    with Path(icon_csv).open(encoding='utf-8-sig',newline='') as f:
-        rows=list(csv.DictReader(f))
-    visible=[]
-    for r in rows:
-        code='0x'+format(int(r['code'],0),'x')
-        if code not in known or r['show_in_custom_style'].strip().lower() not in ('yes','true','1'):
-            continue
-        name=r['osmand_builtin_icon'].strip()
-        if not name or not name.replace('_','').replace('-','').isalnum():
-            raise SystemExit('Invalid OsmAnd icon: '+repr(name)+' code='+code)
-        zoom=int(r['minzoom'])
-        if not 1<=zoom<=21: raise SystemExit('Bad icon zoom: '+code)
-        visible.append((code,name,zoom))
-    root=ET.Element('renderingStyle',name='BGMountains outdoor v0.9',
-                    depends='default',defaultColor='#fff8ee',version='1')
-    order=ET.SubElement(root,'order');points=ET.SubElement(root,'point')
-    lines=ET.SubElement(root,'line')
-    for code,name,zoom in visible:
-        ET.SubElement(order,'case',tag='bgm_poi',value='type_'+code,
-                      minzoom=str(zoom),point='true',objectType='1',order='120')
-        ET.SubElement(points,'case',tag='bgm_poi',value='type_'+code,minzoom=str(zoom),
-                      icon=name,iconOrder='11',iconVisibleSize='16',intersectionSizeFactor='0.7')
-    route_count=0
-    for route in route_styles:
-        if route.get('show','yes').lower() not in ('yes','true','1'):continue
-        route_count+=1
-        code=route['code'];zoom=route['display_minzoom']
-        ET.SubElement(order,'case',tag='bgm_route',value='type_'+code,
-                      minzoom=zoom,objectType='2',order='125')
-        # Color and width faithfully recover TYP base line color, but NOT its bitmap
-        # segment pattern. A precise pattern renderer requires a custom app build.
-        ET.SubElement(lines,'case',tag='bgm_route',value='type_'+code,
-                      minzoom=zoom,color=route['color'],strokeWidth=route['width'],cap='ROUND')
-    path=folder/'BGMountains-outdoor.render.xml'
-    write_xml(ET.ElementTree(root),path)
-    return path,len(visible),route_count
-
-def obtain_creator(cache, offline=False):
-    """Opt-in download from official OsmAnd nightly build (large file)."""
-    import zipfile
-    link='https://download.osmand.net/latest-night-build/OsmAndMapCreator-main.zip'
-    target=cache/'OsmAndMapCreator-main.zip'
-    extracted=cache/'unpacked'
-    found=list(extracted.rglob('utilities.sh')) if extracted.is_dir() else []
-    if found:return found[0].parent
-    if offline:raise SystemExit('Cannot download MapCreator with --offline; pass --creator')
-    cache.mkdir(parents=True,exist_ok=True)
-    if not target.is_file():
-        print('Downloading official OsmAndMapCreator (~150 MB) ...',flush=True)
-        try:
-            with urllib.request.urlopen(link,timeout=180) as src,target.open('wb') as dest:
-                shutil.copyfileobj(src,dest,length=2**20)
-        except Exception as ex:
-            target.unlink(missing_ok=True)
-            raise SystemExit('Cannot download OsmAndMapCreator: '+str(ex)+'\nDownload manually: '+link)
-    print('Extracting MapCreator...',flush=True)
-    extracted.mkdir(parents=True,exist_ok=True)
-    with zipfile.ZipFile(target) as z:
-        for m in z.infolist():
-            rel=Path(m.filename)
-            if rel.is_absolute() or '..' in rel.parts:
-                raise SystemExit('Unsafe file in MapCreator archive: '+m.filename)
-            z.extract(m,extracted)
-    found=list(extracted.rglob('utilities.sh'))
-    if not found:raise SystemExit('MapCreator ZIP extracted but utilities.sh not found')
-    for name in ('utilities.sh','inspector.sh'):
-        for f in extracted.rglob(name):f.chmod(f.stat().st_mode|0o111)
-    return found[0].parent
-
-def resolve_creator(path):
-    name = path or os.environ.get('OSMAND_MAPCREATOR')
-    if not name:return None
-    creator=Path(name).expanduser().resolve()
-    if creator.is_file() and creator.name=='utilities.sh':creator=creator.parent
-    if not (creator/'utilities.sh').is_file():
-        raise SystemExit('Cannot find utilities.sh under '+str(creator))
-    return creator
+    gib=1024**3
+    free=shutil.disk_usage(out).free
+    required=max(int(2*gib),int(source_bytes*5 + gib),int(extra_gb*gib))
+    if free<required:
+        raise RuntimeError(f'Insufficient free space for OBF build: free={free/gib:.2f} GiB; '
+                           f'estimated minimum={required/gib:.2f} GiB. '
+                           'Use --prepare-only or set --ignore-disk-check if scratch resides on another filesystem.')
+    print(f'Disk preflight OK: free={free/gib:.1f} GiB, estimated minimum={required/gib:.1f} GiB',flush=True)
 
 def main():
     p=argparse.ArgumentParser(description=__doc__,formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    inp=p.add_mutually_exclusive_group(required=True)
-    inp.add_argument('--img',help='Original Garmin IMG; converter is compiled and executed')
-    inp.add_argument('--osm',help='Already converted OSM XML; must contain bgm_poi=type_0x... tags (v0.7+)')
-    p.add_argument('--creator',help='OsmAndMapCreator directory containing utilities.sh (or OSMAND_MAPCREATOR env)')
-    p.add_argument('--download-creator',action='store_true',help='Download official OsmAndMapCreator ZIP automatically (~150 MB) when no --creator is set')
-    p.add_argument('--out',default='build/bgmountains-output',help='Output folder')
-    p.add_argument('--jobs',type=int,default=1,help='C++ IMG reader threads (opt-in)')
-    p.add_argument('--bbox',help='Optional W,S,E,N bounds for small-area test')
-    p.add_argument('--threshold',type=int,default=100,help='Frequent-type occurrence threshold')
-    p.add_argument('--frequent-zoom',type=int,default=15,help='Store frequent raw map icons at zoom N and above')
-    p.add_argument('--rare-zoom',type=int,default=17,help='Store rare raw map icons at zoom N and above')
-    p.add_argument('--icons-config',default=str(ROOT/'config/osmand-icons.csv'),help='OsmAnd icon mappings')
-    p.add_argument('--trail-styles',default=str(ROOT/'config/trail-styles.csv'),help='Garmin TYP coloured route overlay styles')
-    p.add_argument('--poi-overrides',default=str(ROOT/'config/poi-overrides-all-types.csv'))
-    p.add_argument('--poi-name-fixes',default=str(ROOT/'config/poi-name-fixes.csv'))
-    p.add_argument('--poi-labels',default=str(ROOT/'config/poi-labels-bg.csv'),help='Bulgarian prefixes for stable generated names on nameless Garmin POIs')
-    p.add_argument('--poi-additions',default=str(ROOT/'config/poi-additions.csv'))
-    p.add_argument('--poi-base',help='Official upstream poi_types.xml; if omitted use cache/download')
-    p.add_argument('--rendering-base',help='Official upstream rendering_types.xml; if omitted use cache/download')
-    p.add_argument('--offline',action='store_true',help='Never download upstream XML')
-    p.add_argument('--prepare-only',action='store_true',help='Do not run OsmAndMapCreator, but generate OSM and XMLs')
-    p.add_argument('--skip-qa',action='store_true',help='Skip OSM comparison for faster repeat runs')
-    p.add_argument('--java-opts',default='-Xms512M -Xmx8192M',help='JAVA_OPTS for OsmAndMapCreator')
-    p.add_argument('--skip-cpp-build',action='store_true')
-    p.add_argument('--catalog',help='Preexisting POI catalog when supplying --osm (otherwise use packaged nationwide catalog)')
-    p.add_argument('--frequency-catalog',default=str(ROOT/'data/BGMountains-unique-poi-types.csv'),help='Reference nationwide counts for map index zoom decisions even in --bbox builds')
-    args=p.parse_args()
-    if args.jobs<1 or args.jobs>64 or args.threshold<1 or not 1<=args.frequent_zoom<=21 or not 1<=args.rare_zoom<=21: p.error('--jobs 1..64; threshold >=1; zoom 1..21')
-    dest=Path(args.out).expanduser().resolve();dest.mkdir(parents=True,exist_ok=True)
-    creator=resolve_creator(args.creator)
-    if not creator and args.download_creator and not args.prepare_only:
-        creator=obtain_creator(ROOT/'build'/'mapcreator-download',args.offline)
-    if not creator and not args.prepare_only:p.error('Supply --creator /path/to/OsmAndMapCreator (or OSMAND_MAPCREATOR env) or use --prepare-only')
-    if args.img:
-        if not Path(args.img).is_file():p.error('IMG file missing: '+args.img)
-        binary=ROOT/'build'/'garmin2osm'
-        if not args.skip_cpp_build or not binary.is_file():
-            call(['cmake','-S',ROOT,'-B',ROOT/'build','-DCMAKE_BUILD_TYPE=Release'])
-            call(['cmake','--build',ROOT/'build','--config','Release','-j','2'])
-        osm=dest/'BGMountains.osm'
-        cmd=[binary,'--input',Path(args.img).resolve(),'--output',osm,'--poi-overrides',Path(args.poi_overrides).resolve(),
-             '--poi-name-fixes',Path(args.poi_name_fixes).resolve(),'--poi-labels',Path(args.poi_labels).resolve(),'--poi-additions',Path(args.poi_additions).resolve(),
-             '--poi-manifest',dest/'source-pois.csv','--poi-types-out',dest/'poi-types.csv','--jobs',args.jobs]
-        if args.bbox:cmd+=['--bbox',args.bbox]
-        call(cmd,log=dest/'converter.log')
-        catalog=dest/'poi-types.csv'
-        if not args.skip_qa:
-            call([sys.executable,ROOT/'tools/validate_pois.py','compare','--source',dest/'source-pois.csv','--osm',osm,
-                 '--rules',Path(args.poi_overrides).resolve(),'--report',dest/'validation.json','--mismatches',dest/'mismatches.csv'],
-                 log=dest/'validator.log')
-    else:
-        osm=Path(args.osm).expanduser().resolve()
-        if not osm.is_file():p.error('OSM file missing: '+str(osm))
-        catalog=Path(args.catalog).expanduser().resolve() if args.catalog else ROOT/'data'/'BGMountains-unique-poi-types.csv'
-    call([sys.executable,ROOT/'tools/audit_icon_coverage.py', '--osm',osm, '--catalog',catalog,
-          '--csv',dest/'poi-coverage.csv','--json',dest/'poi-coverage.json'],
-          log=dest/'poi-coverage.log')
-    rows=catalog_rows(catalog)
-    nationwide={r['code']:r['count'] for r in catalog_rows(args.frequency_catalog)} if args.frequency_catalog else {}
-    for row in rows:
-        row['sample_count']=row['count']
-        row['count']=nationwide.get(row['code'],row['count'])
-    # A separately supplied legacy OSM might lack our new classifier.
-    # For --img, the v0.7 converter above just generated it by construction.
-    if args.osm:
-        import gzip
-        opener=gzip.open if osm.suffix=='.gz' else open
-        with opener(osm,'rt',encoding='utf-8',errors='replace') as f:
-            found=any('k="bgm_poi"' in line for line in f)
-        if not found:
-            raise SystemExit('Existing OSM lacks bgm_poi; re-extract with v0.7 C++ converter.')
-    folder=dest/'osmand-config';folder.mkdir(exist_ok=True)
-    poi_base=base_xml(args.poi_base,creator,'poi',dest/'upstream',args.offline)
-    rendering_base=base_xml(args.rendering_base,creator,'rendering',dest/'upstream',args.offline)
-    route_styles=read_route_styles(args.trail_styles)
-    poi_cfg,render_cfg,summary=make_configs(poi_base,rendering_base,rows,folder,args.threshold,args.frequent_zoom,args.rare_zoom,route_styles)
-    style,nicons,nlines=make_style(args.icons_config,folder,rows,route_styles)
-    print('Indexed POI types:',summary['catalog_types'],'frequent:',summary['types_at_or_above_threshold'],'custom icons:',nicons,'colored route types:',nlines,flush=True)
-    if args.prepare_only:
-        print('PREPARED (no OBF generated). Files at:',dest)
+    p.add_argument('--img',help='Original Garmin IMG')
+    p.add_argument('--osm',help='Already generated original Garmin-derived raw OSM')
+    p.add_argument('--out',default='build/bgmountains-v095')
+    p.add_argument('--poi-config',default=str(ROOT/'config/BGMountains-native-poi-mapping-v094.csv'))
+    p.add_argument('--line-config',default=str(ROOT/'config/line-mapping.csv'))
+    p.add_argument('--jobs',type=int,default=1,help='IMG workers: default 1; explicitly set N to parallelize')
+    p.add_argument('--bbox',help='W,S,E,N region for smoke tests')
+    p.add_argument('--template',action='store_true',help='Generate blank new-map mapping templates using this IMG (not BGMountains defaults)')
+    p.add_argument('--attach-routes',action='store_true',help='Opt in to high-memory matching of trail overlays to physical paths (not recommended on full map)')
+    p.add_argument('--no-route-attachment',action='store_true',help='Deprecated: attachment is disabled by default')
+    p.add_argument('--prepare-only',action='store_true',help='Extract/translate/validate, do not compile OBF')
+    p.add_argument('--creator',help='Existing OsmAndMapCreator directory containing utilities.sh')
+    p.add_argument('--download-creator',action='store_true',help='Obtain official OsmAndMapCreator from download.osmand.net')
+    p.add_argument('--java-opts',default='-Xms512M -Xmx8192M')
+    p.add_argument('--keep-raw',action='store_true',help='Keep pre-translation OSM for debugging')
+    p.add_argument('--ignore-disk-check',action='store_true',help='Override conservative OBF scratch space safety check')
+    p.add_argument('--disk-headroom-gb',type=float,default=0,help='Minimum free GiB required before Java OBF build (0=auto estimate)')
+    a=p.parse_args()
+    if bool(a.img)==bool(a.osm):p.error('Provide exactly one of --img or --osm')
+    if a.jobs<1 or a.jobs>64:p.error('--jobs must be 1..64')
+    if not a.template:
+        for typ,pth in (('POI',a.poi_config),('line',a.line_config)):
+            if not pathlib.Path(pth).is_file():p.error(f'{typ} mapping file not found: {pth}')
+    out=pathlib.Path(a.out).resolve();out.mkdir(parents=True,exist_ok=True)
+    src=pathlib.Path(a.osm).resolve() if a.osm else None
+    poi=pathlib.Path(a.poi_config).resolve();line=pathlib.Path(a.line_config).resolve()
+    # Resolve MapCreator before running an expensive full-country extraction.
+    # Missing download/network credentials must fail before consuming gigabytes.
+    creator=None
+    if not a.prepare_only and not a.template:
+        creator=creator_dir(a.creator or os.environ.get('OSMAND_MAPCREATOR'))
+        if not creator and a.download_creator:
+            creator=fetch_creator(ROOT/'build'/'mapcreator')
+        if not creator:
+            p.error('OBF requires --creator DIR or --download-creator; for testing use --prepare-only.')
+    bin_path=ROOT/'build'/'garmin2osm'
+    if a.img:
+        run('cmake','-S',ROOT,'-B',ROOT/'build','-DCMAKE_BUILD_TYPE=Release')
+        run('cmake','--build',ROOT/'build','-j','2','--target','garmin2osm')
+        src=out/'IMG-raw.osm'
+        cmd=[str(bin_path),'--input',str(pathlib.Path(a.img).resolve()),'--output',str(src),
+            '--poi-types-out',str(out/'discovered-pois.csv'),'--poi-manifest',str(out/'source-pois.csv'),
+            '--jobs',str(a.jobs)]
+        if a.bbox:cmd+=['--bbox',a.bbox]
+        if not a.template:
+            run(sys.executable,TRANSLATOR,'prepare','--poi',poi,'--lines',line,'--out',out)
+            cmd+=['--poi-overrides',str(out/'cpp-poi-override.csv'),'--poi-labels',str(out/'cpp-name-labels.csv')]
+        run(*cmd,log=out/'extract.log')
+    if a.template:
+        if not a.img:p.error('--template requires --img')
+        run(sys.executable,TRANSLATOR,'template','--poi',out/'poi-mapping.TEMPLATE.csv',
+            '--lines',out/'line-mapping.TEMPLATE.csv','--catalog',out/'discovered-pois.csv','--osm',src)
+        print('Templates created. Review both files before using them for native OSM conversion.')
         return 0
-    before={str(i.resolve()) for i in dest.glob('*.obf')}
-    # Save Java logs, and preserve OsmAndMapCreator temp data inside user-selected output dir.
-    env=os.environ.copy();env['JAVA_OPTS']=args.java_opts
-    program=creator/'utilities.sh'
-    cmd=[str(program),'generate-obf-no-address',str(osm),
-         '--poi-types='+str(poi_cfg),'--rendering-types='+str(render_cfg)]
-    call(cmd,cwd=dest,log=dest/'mapcreator.log',env=env)
-    after=[i for i in dest.glob('*.obf') if str(i.resolve()) not in before]
-    if not after:
-        # Creator sometimes writes next to the .osm source, even with cwd changed.
-        alt=list(osm.parent.glob('*.obf'))
-        after=[i for i in alt if i.is_file()]
-    if not after:raise SystemExit('MapCreator returned success but no .obf was found; see '+str(dest/'mapcreator.log'))
-    built=max(after,key=lambda p:p.stat().st_mtime)
-    print('OBF created:',built,'bytes:',built.stat().st_size)
-    if (creator/'inspector.sh').is_file():
-        call([str(creator/'inspector.sh'),'-vpoi',str(built)],cwd=dest,log=dest/'obf-poi-index.txt',env=env)
-    (dest/'build-manifest.json').write_text(json.dumps({
-       'created_at_utc':dt.datetime.now(dt.timezone.utc).isoformat(),
-       'obf':str(built),'obf_bytes':built.stat().st_size,
-       'input_osm':str(osm),'poi_types':str(poi_cfg),'rendering_types':str(render_cfg),
-       'custom_style':str(style), 'custom_style_icon_rules':nicons, 'custom_route_rules':nlines,
-       'summary':summary
-    },ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    dst=out/'BGMountains-native.osm'
+    run(sys.executable,TRANSLATOR,'transform','--poi',poi,'--lines',line,'--osm',src,
+        '--out',dst,'--report',out/'route-report.json',log=out/'translate.log')
+    if a.attach_routes and not a.no_route_attachment:
+        attached=out/'BGMountains-native-attached.osm'
+        run(sys.executable,ROOT/'scripts/attach_native_routes.py','--osm',dst,'--out',attached,
+            '--lines',line,'--report',out/'route-attachment.json',log=out/'route-attachment.log')
+        dst.unlink();attached.rename(dst)
+    run(sys.executable,TRANSLATOR,'audit','--poi',poi,'--lines',line,'--osm',dst,
+        '--out',out/'semantic-audit.json',log=out/'audit.log')
+    # Fail closed if the translated file is not well-formed XML, including relation refs.
+    import xml.etree.ElementTree as ET
+    from native_translate import top_level_elements
+    n=0
+    for e in top_level_elements(dst):
+        if e.tag=='relation':n+=1
+    if not a.keep_raw and a.img:src.unlink(missing_ok=True)
+    if a.prepare_only:
+        print('PREPARED OSM:',dst,'route relations:',n,'No OBF compiled.')
+        return 0
+    if not a.ignore_disk_check:disk_preflight(out,dst.stat().st_size,a.disk_headroom_gb)
+    env=os.environ.copy();env['JAVA_OPTS']=a.java_opts
+    # utilities.sh versions differ in whether JAVA_OPTS is honored; this flag is
+    # explicitly recognized by the JVM. It also reaches spawned Java processes.
+    env['JAVA_TOOL_OPTIONS']=a.java_opts
+    # Native types are built into OsmAnd: NO --poi-types/--rendering-types override,
+    # NO custom .render.xml and NO extracted Garmin icons.
+    started=time.time()
+    run(creator/'utilities.sh','generate-obf-no-address',dst,log=out/'mapcreator.log',cwd=out,env=env)
+    obfs=[f for f in out.glob('*.obf') if f.stat().st_mtime >= started-2 and f.stat().st_size>0]
+    if not obfs:raise RuntimeError('Creator returned no OBF in '+str(out))
+    obf=max(obfs,key=lambda x:x.stat().st_mtime)
+    if (creator/'inspector.sh').exists():
+        run(creator/'inspector.sh','-vpoi',obf,log=out/'obf-inspection.txt',cwd=out,env=env)
+    (out/'build-manifest.json').write_text(json.dumps({
+      'version':'v0.95','input':a.img or a.osm,'poi_config':str(poi),'line_config':str(line),
+      'poi_config_sha256':hashlib.sha256(poi.read_bytes()).hexdigest(),
+      'line_config_sha256':hashlib.sha256(line.read_bytes()).hexdigest(),
+      'output_obf':str(obf),'obf_bytes':obf.stat().st_size,
+      'compiled_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),
+      'notice':'Native stock rendering. POI display zoom controlled by OsmAnd; no claim that all tags get icons.'},ensure_ascii=False,indent=2)+'\n')
+    print('BUILT OBF:',obf)
     return 0
-if __name__=='__main__':
-    sys.exit(main())
+if __name__=='__main__':sys.exit(main())
