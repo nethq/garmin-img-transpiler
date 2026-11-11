@@ -1,0 +1,63 @@
+{
+  "release": "v0.92",
+  "test_environment": "Linux runtime, C++17, Python 3",
+  "unit_tests": "3/3 CTest cases passed; v0.92 suite 5 individual tests",
+  "source_img_size_bytes": 441942016,
+  "vihren": {
+    "bbox": "23.36,41.70,23.42,41.76",
+    "pois": 221,
+    "ways": 5597,
+    "colored_source_segments": 53,
+    "hiking_route_relations": 17,
+    "physical_highway_segments_reused": 48,
+    "unmatched_overlay_segments": 5,
+    "serial_vs_parallel": "identical counts, mapping, and relation statistics"
+  },
+  "plovdiv": {
+    "bbox": "24.63,42.02,24.67,42.05",
+    "example_pois": [
+      {
+        "type": "0x6602",
+        "lat": 42.0346141,
+        "lon": 24.6528697,
+        "osm": "tourism=viewpoint"
+      },
+      {
+        "type": "0x6500",
+        "lat": 42.0347643,
+        "lon": 24.6522689,
+        "osm": "man_made=water_intake"
+      },
+      {
+        "type": "0x6500",
+        "lat": 42.0340991,
+        "lon": 24.6520114,
+        "osm": "man_made=water_intake"
+      }
+    ]
+  },
+  "elevation": {
+    "bbox": "22.29,43.88,22.34,43.93",
+    "spot_height_points": 23,
+    "with_ele_tag": 23
+  },
+  "future_template": {
+    "tested": true,
+    "discovered_poi_types_in_bbox": 21,
+    "discovered_line_types_in_bbox": 16
+  },
+  "obf_build": {
+    "status": "NOT_TESTED",
+    "reason": "Official OsmAndMapCreator is not installed and runtime has no network access"
+  },
+  "stock_icon_visibility": {
+    "status": "NOT_VERIFIED",
+    "reason": "Stock OsmAnd icon and zoom behaviour depends on app version, built-in map style and settings"
+  },
+  "notes": [
+    "zero independent Garmin icon PNGs packaged",
+    "two editable CSV mapping files",
+    "C++ jobs default 1",
+    "Native OSM route relations, no custom phone renderer"
+  ]
+}

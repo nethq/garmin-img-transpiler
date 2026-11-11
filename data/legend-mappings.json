@@ -1,0 +1,404 @@
+{
+  "0x200": {
+    "label_en": "Capital City",
+    "label_bg": "Столица",
+    "reviewed_tags": "place=city;capital=yes",
+    "evidence": "Exact concentric capital icon"
+  },
+  "0x800": {
+    "label_en": "Large City",
+    "label_bg": "Град >75 000",
+    "reviewed_tags": "place=city",
+    "evidence": "Exact medium city circle icon"
+  },
+  "0x900": {
+    "label_en": "Town",
+    "label_bg": "Град <75 000",
+    "reviewed_tags": "place=town",
+    "evidence": "Exact small city circle icon"
+  },
+  "0x2c05": {
+    "label_en": "School",
+    "label_bg": "Училище",
+    "reviewed_tags": "amenity=school",
+    "evidence": "Exact yellow school icon"
+  },
+  "0x2c0b": {
+    "label_en": "Church",
+    "label_bg": "Църква",
+    "reviewed_tags": "amenity=place_of_worship",
+    "evidence": "Exact yellow church icon"
+  },
+  "0x2d04": {
+    "label_en": "Casino",
+    "label_bg": "Казино",
+    "reviewed_tags": "amenity=casino",
+    "evidence": "Exact dice/cards casino icon"
+  },
+  "0x2d08": {
+    "label_en": "Ice Rink",
+    "label_bg": "Пързалка",
+    "reviewed_tags": "leisure=ice_rink",
+    "evidence": "Exact yellow ice-skating icon"
+  },
+  "0x2e05": {
+    "label_en": "Pharmacy",
+    "label_bg": "Аптека",
+    "reviewed_tags": "amenity=pharmacy",
+    "evidence": "Exact yellow pharmacy cup icon"
+  },
+  "0x2e07": {
+    "label_en": "Clothes shop",
+    "label_bg": "Магазин за дрехи",
+    "reviewed_tags": "shop=clothes",
+    "evidence": "Exact clothes-on-hanger icon"
+  },
+  "0x2f0a": {
+    "label_en": "Synagogue",
+    "label_bg": "Синагога",
+    "reviewed_tags": "amenity=place_of_worship;religion=jewish",
+    "evidence": "Exact yellow star icon"
+  },
+  "0x2f0c": {
+    "label_en": "Mosque",
+    "label_bg": "Джамия",
+    "reviewed_tags": "amenity=place_of_worship;religion=muslim",
+    "evidence": "Exact crescent icon"
+  },
+  "0x2f0e": {
+    "label_en": "Car Wash",
+    "label_bg": "Автомивка",
+    "reviewed_tags": "amenity=car_wash",
+    "evidence": "Exact blue/red carwash icon"
+  },
+  "0x3004": {
+    "label_en": "Courthouse",
+    "label_bg": "Съд",
+    "reviewed_tags": "amenity=courthouse",
+    "evidence": "Exact grey courthouse icon"
+  },
+  "0x3008": {
+    "label_en": "Fire Station",
+    "label_bg": "Пожарна",
+    "reviewed_tags": "amenity=fire_station",
+    "evidence": "Exact firefighter icon"
+  },
+  "0x4700": {
+    "label_en": "Port",
+    "label_bg": "Пристанище",
+    "reviewed_tags": "industrial=port",
+    "evidence": "Exact anchor; functional port use not independently confirmed"
+  },
+  "0x6400": {
+    "label_en": "Quarry",
+    "label_bg": "Кариера",
+    "reviewed_tags": "landuse=quarry",
+    "evidence": "Exact crossed mining tools icon; point vs area geometry still to assess"
+  },
+  "0x6401": {
+    "label_en": "Bridge",
+    "label_bg": "Мост",
+    "reviewed_tags": "man_made=bridge",
+    "evidence": "Exact bridge-icon depiction; original route connectivity not established"
+  },
+  "0x6402": {
+    "label_en": "Building",
+    "label_bg": "Сграда",
+    "reviewed_tags": "building=yes",
+    "evidence": "Exact yellow building icon; original building footprint not present"
+  },
+  "0x6403": {
+    "label_en": "Graveyard/Tombstone",
+    "label_bg": "Гробище, оброк",
+    "reviewed_tags": "",
+    "evidence": "Exact grave cross; ambiguous between graveyard and religious votive feature"
+  },
+  "0x6404": {
+    "label_en": "Church",
+    "label_bg": "Църква",
+    "reviewed_tags": "amenity=place_of_worship",
+    "evidence": "Exact church icon"
+  },
+  "0x6405": {
+    "label_en": "Hunting Lodge",
+    "label_bg": "Ловна хижа",
+    "reviewed_tags": "",
+    "evidence": "Exact hunting lodge icon; do NOT infer tourist/alpine hut"
+  },
+  "0x6406": {
+    "label_en": "Barrier/Gate",
+    "label_bg": "Бариера",
+    "reviewed_tags": "barrier=gate",
+    "evidence": "Exact black/red barrier icon"
+  },
+  "0x6407": {
+    "label_en": "Picnic Site",
+    "label_bg": "Пикник",
+    "reviewed_tags": "tourism=picnic_site",
+    "evidence": "Exact picnic bench icon"
+  },
+  "0x6408": {
+    "label_en": "Mountain Rescue",
+    "label_bg": "ПСС",
+    "reviewed_tags": "emergency=mountain_rescue",
+    "evidence": "Exact shield with red cross"
+  },
+  "0x6409": {
+    "label_en": "Monument",
+    "label_bg": "Паметник",
+    "reviewed_tags": "historic=monument",
+    "evidence": "Exact obelisk icon"
+  },
+  "0x640a": {
+    "label_en": "Danger",
+    "label_bg": "Опасност",
+    "reviewed_tags": "",
+    "evidence": "Exact danger triangle, but specific hazard is unspecified"
+  },
+  "0x640b": {
+    "label_en": "Chapel",
+    "label_bg": "Параклис",
+    "reviewed_tags": "amenity=place_of_worship",
+    "evidence": "Exact small chapel icon"
+  },
+  "0x640c": {
+    "label_en": "Mine Shaft",
+    "label_bg": "Мина",
+    "reviewed_tags": "man_made=mine_shaft",
+    "evidence": "Exact crossed tools icon"
+  },
+  "0x640d": {
+    "label_en": "Lift",
+    "label_bg": "Лифт",
+    "reviewed_tags": "",
+    "evidence": "Exact chairlift icon; unknown whether point is aerialway station or line"
+  },
+  "0x640e": {
+    "label_en": "Bus Stop/Station",
+    "label_bg": "Спирка",
+    "reviewed_tags": "highway=bus_stop",
+    "evidence": "Exact bus stop icon; may be terminal rather than stop"
+  },
+  "0x640f": {
+    "label_en": "Graveyard/Tombstone",
+    "label_bg": "Гробище, оброк",
+    "reviewed_tags": "",
+    "evidence": "Exact two-cross marker; ambiguous cemetery versus religious site"
+  },
+  "0x6411": {
+    "label_en": "Tower",
+    "label_bg": "Кула",
+    "reviewed_tags": "man_made=tower",
+    "evidence": "Exact tower icon"
+  },
+  "0x6412": {
+    "label_en": "Trailhead",
+    "label_bg": "Начало пътека",
+    "reviewed_tags": "highway=trailhead",
+    "evidence": "Exact walking-person trailhead icon; corrects former guidepost"
+  },
+  "0x6413": {
+    "label_en": "Tunnel",
+    "label_bg": "Тунел",
+    "reviewed_tags": "",
+    "evidence": "Exact tunnel portal icon; avoid tunnel=yes on standalone node"
+  },
+  "0x6414": {
+    "label_en": "Drinking Water",
+    "label_bg": "Чешма",
+    "reviewed_tags": "amenity=drinking_water",
+    "evidence": "Exact tap/fountain icon; source may include dry fountains"
+  },
+  "0x6415": {
+    "label_en": "Camp Site",
+    "label_bg": "Място за бивакуване",
+    "reviewed_tags": "tourism=camp_site",
+    "evidence": "Exact blue tent icon; corrects shelter"
+  },
+  "0x6416": {
+    "label_en": "Ruins",
+    "label_bg": "Руини",
+    "reviewed_tags": "historic=ruins",
+    "evidence": "Exact ruin block icon"
+  },
+  "0x6417": {
+    "label_en": "Well",
+    "label_bg": "Кладенец",
+    "reviewed_tags": "man_made=water_well",
+    "evidence": "Exact turquoise well-circle icon; no automatic drinking-water claim"
+  },
+  "0x641a": {
+    "label_en": "Church",
+    "label_bg": "Църква",
+    "reviewed_tags": "amenity=place_of_worship",
+    "evidence": "Exact yellow church icon"
+  },
+  "0x641b": {
+    "label_en": "Church",
+    "label_bg": "Църква",
+    "reviewed_tags": "amenity=place_of_worship",
+    "evidence": "Exact yellow church icon"
+  },
+  "0x641c": {
+    "label_en": "Bus Stop/Station",
+    "label_bg": "Спирка",
+    "reviewed_tags": "highway=bus_stop",
+    "evidence": "Exact blue bus station icon"
+  },
+  "0x6500": {
+    "label_en": "Reservoir",
+    "label_bg": "Каптаж",
+    "reviewed_tags": "",
+    "evidence": "Exact solid blue square; legend means catchment/reservoir, not waterworks"
+  },
+  "0x6501": {
+    "label_en": "Restaurant",
+    "label_bg": "Ресторант",
+    "reviewed_tags": "amenity=restaurant",
+    "evidence": "Exact fork+knife icon; corrects name-based cafe inference"
+  },
+  "0x6502": {
+    "label_en": "River Passage",
+    "label_bg": "Брод",
+    "reviewed_tags": "",
+    "evidence": "Exact blue river crossing; need to verify whether it is ford=yes"
+  },
+  "0x6503": {
+    "label_en": "Crossroad",
+    "label_bg": "Кръстопът",
+    "reviewed_tags": "",
+    "evidence": "Exact black crossroad icon; corrects guidepost assumption"
+  },
+  "0x6505": {
+    "label_en": "Shop",
+    "label_bg": "Магазин",
+    "reviewed_tags": "shop=yes",
+    "evidence": "Exact shopfront icon"
+  },
+  "0x6506": {
+    "label_en": "Museum",
+    "label_bg": "Музей",
+    "reviewed_tags": "tourism=museum",
+    "evidence": "Exact museum icon"
+  },
+  "0x650b": {
+    "label_en": "Winter Marking",
+    "label_bg": "Зимна маркировка",
+    "reviewed_tags": "",
+    "evidence": "Exact winter red/yellow marker; corrects information=board"
+  },
+  "0x650c": {
+    "label_en": "Dead End",
+    "label_bg": "Задънена улица",
+    "reviewed_tags": "noexit=yes",
+    "evidence": "Exact blue square T sign; point is dead-end indicator"
+  },
+  "0x6511": {
+    "label_en": "Spring",
+    "label_bg": "Извор",
+    "reviewed_tags": "natural=spring",
+    "evidence": "Exact blue water spring drop; no automatic potable-water claim"
+  },
+  "0x6600": {
+    "label_en": "Triangulation",
+    "label_bg": "Кота",
+    "reviewed_tags": "",
+    "evidence": "Exact square survey icon; preserve any independently parsed numeric elevation"
+  },
+  "0x6601": {
+    "label_en": "Natural Phenomenon",
+    "label_bg": "Природен феномен",
+    "reviewed_tags": "",
+    "evidence": "Exact natural-phenomenon hiking silhouette; subtype unknown"
+  },
+  "0x6602": {
+    "label_en": "Viewpoint",
+    "label_bg": "Гледка",
+    "reviewed_tags": "tourism=viewpoint",
+    "evidence": "Exact black camera icon"
+  },
+  "0x6603": {
+    "label_en": "Triangulation",
+    "label_bg": "Кота",
+    "reviewed_tags": "man_made=survey_point",
+    "evidence": "Exact black square survey-point icon"
+  },
+  "0x6608": {
+    "label_en": "Hotel",
+    "label_bg": "Хотел",
+    "reviewed_tags": "tourism=hotel",
+    "evidence": "Exact hotel/bed icon; corrects viewpoint"
+  },
+  "0x6609": {
+    "label_en": "Hut",
+    "label_bg": "Хижа",
+    "reviewed_tags": "tourism=alpine_hut",
+    "evidence": "Exact mountain hut icon"
+  },
+  "0x660a": {
+    "label_en": "Refuge",
+    "label_bg": "Заслон",
+    "reviewed_tags": "amenity=shelter;shelter_type=basic_hut",
+    "evidence": "Exact refuge icon; shelter type provisional"
+  },
+  "0x660b": {
+    "label_en": "Mark",
+    "label_bg": "Маркировка",
+    "reviewed_tags": "",
+    "evidence": "Exact black circle mark icon; corrects information=board"
+  },
+  "0x6610": {
+    "label_en": "Meadow",
+    "label_bg": "Поляна",
+    "reviewed_tags": "",
+    "evidence": "Exact green meadow/flag icon; point geometry not polygon"
+  },
+  "0x6613": {
+    "label_en": "Waterfall",
+    "label_bg": "Водопад",
+    "reviewed_tags": "waterway=waterfall",
+    "evidence": "Exact three blue streams icon"
+  },
+  "0x6614": {
+    "label_en": "Rock",
+    "label_bg": "Скала",
+    "reviewed_tags": "",
+    "evidence": "Exact black rock silhouette; many numerical labels require additional checking"
+  },
+  "0x6615": {
+    "label_en": "Cave",
+    "label_bg": "Пещера",
+    "reviewed_tags": "natural=cave_entrance",
+    "evidence": "Exact yellow cave icon"
+  },
+  "0x6617": {
+    "label_en": "Peak",
+    "label_bg": "Връх",
+    "reviewed_tags": "natural=peak",
+    "evidence": "Exact triangular mountain icon"
+  },
+  "0x6618": {
+    "label_en": "Tree",
+    "label_bg": "Дърво",
+    "reviewed_tags": "natural=tree",
+    "evidence": "Exact green pine icon"
+  },
+  "0x6619": {
+    "label_en": "Prehistoric site",
+    "label_bg": "Праисторически обект",
+    "reviewed_tags": "historic=archaeological_site",
+    "evidence": "Exact yellow prehistoric icon"
+  },
+  "0x661a": {
+    "label_en": "Antiquity site",
+    "label_bg": "Античен обект",
+    "reviewed_tags": "historic=archaeological_site",
+    "evidence": "Exact yellow antiquity icon"
+  },
+  "0x661b": {
+    "label_en": "Medieval site",
+    "label_bg": "Средновековен обект",
+    "reviewed_tags": "historic=archaeological_site",
+    "evidence": "Exact yellow medieval icon"
+  }
+}

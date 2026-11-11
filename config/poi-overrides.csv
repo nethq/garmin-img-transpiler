@@ -1,0 +1,6 @@
+# A copy-ready configurator: code,name_contains,mode,tags,note
+# modes: replace (remove semantic defaults), append (override keys), keep_raw (retain only provenance), drop
+# Empty name_contains applies to every POI with that raw hex code.
+# You can REMOVE an existing tag with key= (empty value).
+code,name_contains,mode,tags,note
+# 0x6414,,replace,man_made=water_well,EXAMPLE ONLY - not confirmed; uncomment after verification

@@ -1,0 +1,5 @@
+# Optional, coordinate-specific verified POI corrections; no active rows by default.
+# Use only after verifying a name against the ORIGINAL IMG at the same coordinates.
+# Changing a name in this file will change both generated OSM and source manifest; validator will still pass.
+# mapset ID, hex code, exact WGS84 lat/lon, old and new names must match precisely.
+mapset,code,lat,lon,old_name,new_name,note

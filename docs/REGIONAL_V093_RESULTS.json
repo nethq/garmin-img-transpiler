@@ -1,0 +1,13 @@
+{
+  "status": "PASS_preparation_only",
+  "subset": "Vihren region; no national OSM/OBF build performed",
+  "bbox": "23.30,41.67,23.50,41.84",
+  "workers": 4,
+  "total_pois": 1915,
+  "unknown_fallback": 150,
+  "spot_heights_preserved": 296,
+  "unclassified": 0,
+  "hiking_route_relations": 82,
+  "candidate_overlay_segments": 273,
+  "caveat": "Serial route grouping differs (78 vs 82). OBF rendering not validated."
+}

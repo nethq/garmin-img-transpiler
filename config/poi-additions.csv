@@ -1,0 +1,3 @@
+# Manually add independent POIs, distinct from the IMG source: lat,lon,name,tags
+# 42.2000000,23.3000000,My survey feature,natural=spring;survey:date=2026-10-14
+lat,lon,name,tags

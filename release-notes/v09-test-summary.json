@@ -1,0 +1,14 @@
+{
+  "version": "0.9",
+  "tested_img_region": "Vihren",
+  "pois_source": 101,
+  "winter_markers": 31,
+  "serial_parallel_features_equal": 3665,
+  "poi_styles": 259,
+  "distinct_icon_ids": 46,
+  "line_styles": 50,
+  "no_false_marina_tags": true,
+  "old_synthetic_information_rules_removed": 211,
+  "obf_compiled_in_this_environment": false,
+  "actual_mobile_display_verified": false
+}
