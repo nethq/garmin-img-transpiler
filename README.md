@@ -1,4 +1,4 @@
-# BGMountains Garmin IMG → native OsmAnd OBF — v0.95
+# CPP Transpiler Garmin .IMG -> .OSM/.OBF format
 
 **This is the integrated source release.** It replaces the v0.92/v0.93 Python
 pipeline and v0.94 standalone CSVs. Do not combine scripts from older ZIPs:
