@@ -1,0 +1,8 @@
+{
+"candidate_overlay_ways":22501,
+"attached_to_existing_highway":19061,
+"unmatched_overlay_members":3440,
+"hiking_relations":3791,
+"relation_ids_remapped":0,
+"policy":"Attach only with >=90% shared physical segments and <=10% physical overrun. No invented routable ways."
+}

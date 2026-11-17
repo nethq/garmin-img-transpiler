@@ -38,7 +38,7 @@ class V095(unittest.TestCase):
   with tempfile.TemporaryDirectory() as dd:
    d=pathlib.Path(dd)
    creator=d/'creator';creator.mkdir()
-   (creator/'utilities.sh').write_text('#!/bin/sh\nset -eu\n[ "$1" = "generate-obf-no-address" ]\n[ -f "$2" ]\n[ "${JAVA_TOOL_OPTIONS:-}" = "-Xms512M -Xmx25G" ]\nprintf MOCK-OBF > "${2%.osm}.obf"\n')
+   (creator/'utilities.sh').write_text('#!/bin/sh\nset -eu\n[ "$1" = "generate-obf-no-address" ]\n[ -f "$2" ]\n[ "${JAVA_TOOL_OPTIONS:-}" = "-Xms512M -Xmx25G" ]\nprintf \"INFO: Finish writing binary file\\n\"\n\nprintf MOCK-OBF > "${2%.osm}.obf"\n')
    (creator/'utilities.sh').chmod(0o755)
    (creator/'inspector.sh').write_text('#!/bin/sh\n[ "$1" = "-vpoi" ]\nprintf MOCK-INSPECTION\n')
    (creator/'inspector.sh').chmod(0o755)
@@ -50,7 +50,7 @@ class V095(unittest.TestCase):
    run=subprocess.run(cmd,cwd=ROOT,capture_output=True,text=True)
    self.assertEqual(run.returncode,0,run.stderr+'\n'+run.stdout)
    self.assertTrue((d/'out'/'BGMountains-native.obf').is_file())
-   self.assertEqual(json.loads((d/'out'/'build-manifest.json').read_text())['version'],'v0.95')
+   self.assertEqual(json.loads((d/'out'/'build-manifest.json').read_text())['version'],'v0.97.5')
    self.assertEqual(json.loads((d/'out'/'semantic-audit.json').read_text())['status'],'PASS')
    tags=t.tagdict(ET.parse(d/'out'/'BGMountains-native.osm').getroot().find('node'))
    self.assertEqual(tags['amenity'],'drinking_water')

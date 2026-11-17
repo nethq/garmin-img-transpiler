@@ -1,0 +1,19 @@
+{
+  "transform_seconds": 304.35881078700004,
+  "report": {
+    "pois": 410563,
+    "synthetic_locality_fallbacks": 4903,
+    "ways": 2294306,
+    "route_candidate_ways": 22501,
+    "route_relations": 3791,
+    "route_components": 3791,
+    "largest_component_ways": 161,
+    "source_types_missing_mapping": {},
+    "notes": [
+      "Synthetic place=locality on unknown features is PRIVATE-map-only",
+      "Native OSM route relations; no custom phone-side stylesheet",
+      "Display zoom remains controlled by stock OsmAnd, not config zoom_hint",
+      "Route symbol derived from Garmin color; color_only mappings require review"
+    ]
+  }
+}

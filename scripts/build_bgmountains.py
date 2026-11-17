@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""BGMountains v0.95 native OsmAnd pipeline: POI, line and generated-name configuration.
+"""BGMountains v0.97.5 native OsmAnd pipeline: POI, line and generated-name configuration.
 
 Never needs extracted Garmin icons or custom styles on Android.
 """
@@ -24,9 +24,15 @@ def timed(report, stage):
             print(json.dumps(record), file=stream)
         print(f'[{stage}] {elapsed:.2f}s ({status})', flush=True)
 
-def timed_run(report, stage, *args, **kwargs):
+def timed_run(report, stage, *args, check_mapcreator=False, **kwargs):
     with timed(report, stage):
         run(*args, **kwargs)
+        if check_mapcreator:
+            from mapcreator_diagnostics import analyze
+            diagnostics = report.parent / 'mapcreator-diagnostics.json'
+            result = analyze(kwargs['log'], diagnostics)
+            if result['status'] == 'FAIL':
+                raise RuntimeError(f'MapCreator logged errors or did not finish. See {diagnostics}')
 
 def run(*args,log=None,cwd=None,env=None):
     cmd=[str(x) for x in args];print('+',' '.join(cmd),flush=True)
@@ -37,6 +43,26 @@ def run(*args,log=None,cwd=None,env=None):
             print(''.join(pathlib.Path(log).read_text(errors='replace').splitlines(True)[-40:]),file=sys.stderr)
             raise RuntimeError('Command failed, see '+str(log))
     else:subprocess.run(cmd,check=True,cwd=cwd,env=env)
+
+def native_tool(engine, stage):
+    if engine == 'python':
+        return None
+    if not shutil.which('cmake'):
+        if engine == 'native':
+            raise RuntimeError('--engine native requires CMake and an Expat runtime')
+        print('CMake unavailable, using Python processing', flush=True)
+        return None
+    build = ROOT/'build'/'native'
+    stage('native-configure','cmake','-S',ROOT,'-B',build,
+          '-DCMAKE_BUILD_TYPE=Release','-DGARMIN_POSTPROCESS_ONLY=ON')
+    stage('native-build','cmake','--build',build,'-j','2','--target','native_postprocess')
+    tool = build/'native_postprocess'
+    if tool.is_file():
+        return tool
+    if engine == 'native':
+        raise RuntimeError('Native acceleration unavailable. An Expat runtime is required.')
+    print('Expat runtime unavailable, using Python processing', flush=True)
+    return None
 
 def creator_dir(x):
     if not x:return None
@@ -82,10 +108,11 @@ def main():
     p.add_argument('--img',help='Original Garmin IMG')
     p.add_argument('--osm',help='Already generated original Garmin-derived raw OSM')
     p.add_argument('--native-osm',help='Resume from already translated OSM; use a separate output directory')
-    p.add_argument('--out',default='build/bgmountains-v095')
+    p.add_argument('--out',default='build/bgmountains-v097-05')
     p.add_argument('--poi-config',default=str(ROOT/'config/poi-mapping.csv'))
     p.add_argument('--line-config',default=str(ROOT/'config/line-mapping.csv'))
     p.add_argument('--hash-config',default=None,help='Generated POI suffix lengths by Garmin type')
+    p.add_argument('--engine',choices=('auto','native','python'),default='auto',help='Use native streaming translation, route attachment and audit when available')
     p.add_argument('--jobs',type=int,default=1,help='IMG workers: default 1; explicitly set N to parallelize')
     p.add_argument('--bbox',help='W,S,E,N region for smoke tests')
     p.add_argument('--review-pois',action='store_true',help='Inventory the IMG, write editable poi-review.csv using --poi-config, and exit before conversion')
@@ -132,6 +159,9 @@ def main():
         from hiking_profile import compile_indexes
         with timed(timings, 'prepare-indexes'):
             index_args = compile_indexes(creator,poi,out)
+    tool = None if a.template or a.review_pois else native_tool(a.engine, stage)
+    engine = 'native' if tool else 'python'
+    print('OSM processing engine:',engine,flush=True)
     bin_path=ROOT/'build'/'garmin2osm'
     if a.img:
         stage('cmake-configure','cmake','-S',ROOT,'-B',ROOT/'build','-DCMAKE_BUILD_TYPE=Release')
@@ -163,20 +193,32 @@ def main():
         print('Templates created. Review both files before using them for native OSM conversion.')
         return 0
     dst=out/'BGMountains-native.osm'
-    if native:
-        if not (a.attach_routes and not a.no_route_attachment):
-            with timed(timings, 'copy-native'):
-                shutil.copyfile(native,dst)
-    else:
-        stage('transform',sys.executable,TRANSLATOR,'transform','--poi',poi,'--lines',line,*hash_args,'--osm',src,
-        '--out',dst,'--report',out/'route-report.json',log=out/'translate.log')
-    if a.attach_routes and not a.no_route_attachment:
-        attached=out/'BGMountains-native-attached.osm'
-        stage('attach-routes',sys.executable,ROOT/'scripts/attach_native_routes.py','--osm',native or dst,'--out',attached,
-            '--lines',line,'--report',out/'route-attachment.json',log=out/'route-attachment.log')
-        attached.replace(dst)
-    stage('audit',sys.executable,TRANSLATOR,'audit','--poi',poi,'--lines',line,'--osm',dst,
-        '--out',out/'semantic-audit.json',log=out/'audit.log')
+    attach = a.attach_routes and not a.no_route_attachment
+    if not native:
+        stage('transform',sys.executable,TRANSLATOR,'transform','--engine',engine,
+              '--poi',poi,'--lines',line,*hash_args,'--osm',src,
+              '--out',dst,'--report',out/'route-report.json',log=out/'translate.log')
+    # Existing translated checkpoints can contain negative relation IDs. Repair
+    # them on resume even when route attachment is disabled.
+    if native or attach:
+        if tool:
+            from native_backend import postprocess
+            from native_translate import read_poi_configuration, line_mapping
+            pois, _ = read_poi_configuration(poi)
+            with timed(timings, 'attach-audit-native' if attach else 'normalize-audit-native'):
+                postprocess(tool,native or dst,dst,pois,line_mapping(line),
+                            out/'route-attachment.json',out/'semantic-audit.json',attach=attach,
+                            log=out/'route-attachment.log')
+        else:
+            attached=out/'BGMountains-native-attached.osm'
+            stage('attach-routes' if attach else 'normalize-relations',sys.executable,
+                  ROOT/'scripts/attach_native_routes.py','--osm',native or dst,'--out',attached,
+                  '--lines',line,'--report',out/'route-attachment.json',
+                  *([] if attach else ['--normalize-only']),log=out/'route-attachment.log')
+            attached.replace(dst)
+    if not tool:
+        stage('audit',sys.executable,TRANSLATOR,'audit','--poi',poi,'--lines',line,'--osm',dst,
+              '--out',out/'semantic-audit.json',log=out/'audit.log')
     # The audit consumes the complete XML stream and already counts hiking relations.
     audit = json.loads((out/'semantic-audit.json').read_text(encoding='utf-8'))
     n = sum(audit['route_relation_counts'].values())
@@ -191,14 +233,14 @@ def main():
     env['JAVA_TOOL_OPTIONS']=a.java_opts
     # Index settings travel in the OBF; the phone uses its existing rendering style.
     started=time.time()
-    stage('build-obf',creator/'utilities.sh','generate-obf-no-address',dst,*index_args,log=out/'mapcreator.log',cwd=out,env=env)
+    stage('build-obf',creator/'utilities.sh','generate-obf-no-address',dst,*index_args,log=out/'mapcreator.log',cwd=out,env=env,check_mapcreator=True)
     obfs=[f for f in out.glob('*.obf') if f.stat().st_mtime >= started-2 and f.stat().st_size>0]
     if not obfs:raise RuntimeError('Creator returned no OBF in '+str(out))
     obf=max(obfs,key=lambda x:x.stat().st_mtime)
     if (creator/'inspector.sh').exists():
         stage('inspect-obf',creator/'inspector.sh','-vpoi',obf,log=out/'obf-inspection.txt',cwd=out,env=env)
     (out/'build-manifest.json').write_text(json.dumps({
-      'version':'v0.95','input':a.img or a.osm or a.native_osm,'poi_config':str(poi),'line_config':str(line),
+      'version':'v0.97.5','processing_engine':engine,'input':a.img or a.osm or a.native_osm,'poi_config':str(poi),'line_config':str(line),
       'hash_config':str(pathlib.Path(a.hash_config).resolve()) if a.hash_config else str(poi),
       'hash_config_sha256':hashlib.sha256(pathlib.Path(a.hash_config or poi).read_bytes()).hexdigest(),
       'poi_config_sha256':hashlib.sha256(poi.read_bytes()).hexdigest(),

@@ -1,0 +1,7 @@
+{
+  "python_attach_and_audit_seconds": 3.2486239979998572,
+  "native_attach_and_audit_seconds": 0.48172133500065684,
+  "speedup": 6.743782685056761,
+  "report_parity": true,
+  "osm_bytes": 17476266
+}

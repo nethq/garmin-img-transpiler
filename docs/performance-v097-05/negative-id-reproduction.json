@@ -1,0 +1,89 @@
+{
+  "status": "FAIL",
+  "error_levels": {
+    "SEVERE": 16
+  },
+  "error_samples": [
+    "SEVERE: calcEntityIdFromRelationId() relation -1/0/18 overflow (27/9/6 bits)",
+    "SEVERE: calcEntityIdFromRelationId() relation -1/0/18 overflow (27/9/6 bits)",
+    "SEVERE: calcEntityIdFromRelationId() relation -2/0/10 overflow (27/9/6 bits)",
+    "SEVERE: calcEntityIdFromRelationId() relation -2/0/10 overflow (27/9/6 bits)",
+    "SEVERE: calcEntityIdFromRelationId() relation -3/0/52 overflow (27/9/6 bits)",
+    "SEVERE: calcEntityIdFromRelationId() relation -3/0/52 overflow (27/9/6 bits)",
+    "SEVERE: calcEntityIdFromRelationId() relation -4/0/21 overflow (27/9/6 bits)",
+    "SEVERE: calcEntityIdFromRelationId() relation -4/0/21 overflow (27/9/6 bits)",
+    "SEVERE: calcEntityIdFromRelationId() relation -5/0/37 overflow (27/9/6 bits)",
+    "SEVERE: calcEntityIdFromRelationId() relation -5/1/37 overflow (27/9/6 bits)"
+  ],
+  "finish_writing_binary_file": true,
+  "relation_id_overflow": {
+    "affected_relation_count": 6,
+    "negative_relation_count": 6,
+    "relation_id_min": -6,
+    "relation_id_max": -1,
+    "max_counter": 2,
+    "max_hash": 52,
+    "required_relation_range": "0 <= id < 134217728",
+    "required_counter_range": "0 <= counter < 512",
+    "required_hash_range": "0 <= hash < 64"
+  },
+  "overpass_url_unset": true,
+  "stage_intervals_seconds": [
+    {
+      "stage": "loading_file/workspace/scratch/53c06a6a118e/optimize/negative-obf/negative.osm",
+      "seconds": 1.0
+    },
+    {
+      "stage": "preindex_boundaries_relations",
+      "seconds": 0.0
+    },
+    {
+      "stage": "preindex_boundaries_ways",
+      "seconds": 0.0
+    },
+    {
+      "stage": "process_osm_nodes",
+      "seconds": 1.0
+    },
+    {
+      "stage": "process_osm_ways",
+      "seconds": 1.0
+    },
+    {
+      "stage": "process_osm_rel",
+      "seconds": 0.0
+    },
+    {
+      "stage": "index_lo_level_ways",
+      "seconds": 0.0
+    },
+    {
+      "stage": "pack_rtree_map",
+      "seconds": 0.0
+    },
+    {
+      "stage": "pack_rtree_transp",
+      "seconds": 0.0
+    },
+    {
+      "stage": "Writing map index to binary file...",
+      "seconds": 0.0
+    },
+    {
+      "stage": "Writing route index to binary file...",
+      "seconds": 0.0
+    },
+    {
+      "stage": "Start found roads in Normal routing for added to Base routing: ",
+      "seconds": 0.0
+    },
+    {
+      "stage": "Writing poi index to binary file...",
+      "seconds": 0.0
+    },
+    {
+      "stage": "Writing transport index to binary file...",
+      "seconds": 0.0
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{"stage": "fetch-creator", "seconds": 0.002, "status": "ok"}
+{"stage": "prepare-indexes", "seconds": 0.396, "status": "ok"}
+{"stage": "attach-routes", "seconds": 2224.077, "status": "ok"}
+{"stage": "audit", "seconds": 368.635, "status": "ok"}
+{"stage": "build-obf", "seconds": 3934.765, "status": "ok"}
+{"stage": "inspect-obf", "seconds": 12.582, "status": "ok"}

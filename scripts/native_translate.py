@@ -231,6 +231,7 @@ def transform(source,dest,pois,lines,report,strict=False,lengths=None):
     db=sqlite3.connect(dbpath)
     db.execute('PRAGMA synchronous=OFF');db.execute('PRAGMA journal_mode=MEMORY')
     db.execute('CREATE TABLE edges (code TEXT, way INTEGER, a INTEGER, b INTEGER)')
+    used_relation_ids=set();next_relation_id=1
     poi_count=0; ways=0; candidate_edges=0; emitted=0; synthetic=0; kinds=collections.Counter();seen=collections.Counter();gaps=collections.Counter()
     with open(source,'rb') as inp,open(dest,'w',encoding='utf-8') as out:
         out.write('<?xml version="1.0" encoding="UTF-8"?>\n<osm version="0.6" generator="garmin2osm-v0.95" upload="never">\n')
@@ -280,6 +281,7 @@ def transform(source,dest,pois,lines,report,strict=False,lengths=None):
                     set_tags(el,tags)
                 out.write(ET.tostring(el,encoding='unicode')+'\n');emitted+=1
             elif el.tag=='relation':
+                used_relation_ids.add(int(el.get('id')))
                 out.write(ET.tostring(el,encoding='unicode')+'\n');emitted+=1
             el.clear()
         db.commit()
@@ -309,8 +311,11 @@ def transform(source,dest,pois,lines,report,strict=False,lengths=None):
             for i,(w,a,b) in enumerate(edges):comps[root(i)].append(w)
             for members in comps.values():
                 components+=1;largest=max(largest,len(members));relations+=1
-                # Deterministic, negative IDs because prior C++ IDs are positive
-                rel=ET.Element('relation',id=str(-relations),version='1')
+                # Relation IDs have their own namespace. MapCreator requires 0..2^27-1.
+                while next_relation_id in used_relation_ids:next_relation_id+=1
+                if next_relation_id >= 1 << 27:raise ValueError('No available MapCreator relation IDs')
+                rel=ET.Element('relation',id=str(next_relation_id),version='1')
+                next_relation_id+=1
                 for wid in sorted(members):ET.SubElement(rel,'member',type='way',ref=str(wid),role='')
                 row=lines[c]
                 tags={'type':'route','route':'hiking','network':row.get('network'),
@@ -363,8 +368,8 @@ def main():
         if cmd in ('prepare','transform'):
             s.add_argument('--hash-config',default=None)
         if cmd=='prepare':s.add_argument('--out',required=True)
-        elif cmd=='transform':s.add_argument('--osm',required=True);s.add_argument('--out',required=True);s.add_argument('--report',required=True)
-        elif cmd=='audit':s.add_argument('--osm',required=True);s.add_argument('--out',required=True);s.add_argument('--strict',action='store_true')
+        elif cmd=='transform':s.add_argument('--engine',choices=('auto','native','python'),default='auto');s.add_argument('--osm',required=True);s.add_argument('--out',required=True);s.add_argument('--report',required=True)
+        elif cmd=='audit':s.add_argument('--engine',choices=('auto','native','python'),default='auto');s.add_argument('--osm',required=True);s.add_argument('--out',required=True);s.add_argument('--strict',action='store_true')
         else:s.add_argument('--catalog',required=True);s.add_argument('--osm')
     a=p.parse_args()
     if a.mode=='template':res=template(a.catalog,a.poi,a.lines,a.osm)
@@ -373,7 +378,17 @@ def main():
         if a.mode=='prepare':
             out=pathlib.Path(a.out);out.mkdir(parents=True,exist_ok=True)
             make_cpp_rules(ps,out/'cpp-poi-override.csv',out/'cpp-name-labels.csv',conditional,configured_lengths(ps,a.hash_config));res={'poi_types':len(ps),'name_specific_rules':len(conditional),'line_types':len(ls)}
-        elif a.mode=='transform':res=transform(a.osm,a.out,ps,ls,a.report,lengths=configured_lengths(ps,a.hash_config))
-        else:res=inspect_counts(a.osm,ps,ls,a.out,a.strict)
+        elif a.mode=='transform':
+            tool=pathlib.Path(__file__).resolve().parents[1]/'build'/'native'/'native_postprocess'
+            if a.engine=='native' or (a.engine=='auto' and tool.is_file()):
+                from native_backend import transform as native_transform
+                res=native_transform(tool,a.osm,a.out,ps,ls,a.report,configured_lengths(ps,a.hash_config))
+            else:res=transform(a.osm,a.out,ps,ls,a.report,lengths=configured_lengths(ps,a.hash_config))
+        else:
+            tool=pathlib.Path(__file__).resolve().parents[1]/'build'/'native'/'native_postprocess'
+            if a.engine=='native' or (a.engine=='auto' and tool.is_file()):
+                from native_backend import audit as native_audit
+                res=native_audit(tool,a.osm,ps,a.out,a.strict)
+            else:res=inspect_counts(a.osm,ps,ls,a.out,a.strict)
     print(json.dumps(res,ensure_ascii=False,indent=2));return 0
 if __name__=='__main__':sys.exit(main())

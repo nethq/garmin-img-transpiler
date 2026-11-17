@@ -18,7 +18,7 @@ class Native092(unittest.TestCase):
   self.assertTrue(all('garmin:type' not in r['osm_tags'] for r in rows.values()))
   self.assertTrue(all(int(rows[k]['zoom_hint'])<=12 for k in ('0x6414','0x6511','0x6500','0x660a')))
  def test_config_inventory_and_types(self):
-  self.assertEqual(set(p.name for p in (ROOT/'config').glob('*.csv')),{'poi-mapping.csv','line-mapping.csv'})
+  self.assertEqual(set(p.name for p in (ROOT/'config').glob('*.csv')),{'poi-mapping.csv','line-mapping.csv','poi-rev-v04.csv'})
   lines=t.line_mapping(LINES)
   self.assertEqual(sum(row['route_mode']=='relation' for row in lines.values()),19)
   self.assertEqual(lines['0x10f17']['route_mode'],'preserve')

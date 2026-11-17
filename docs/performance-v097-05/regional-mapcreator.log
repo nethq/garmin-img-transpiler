@@ -1,0 +1,167 @@
+Picked up JAVA_TOOL_OPTIONS: -Xms256M -Xmx2G
+Nov 17, 2026 2:19:35 PM net.osmand.osm.MapRenderingTypes initFromInputStream
+INFO: Time to init poi types 91
+Nov 17, 2026 2:19:36 PM net.osmand.osm.MapRenderingTypes init
+INFO: Time to init 480
+Nov 17, 2026 2:19:36 PM net.osmand.obf.preparation.IndexCreator getDatabaseConnection
+INFO: Access sqlite Bgmountains-native.obf.tmp running in native mode using disk 
+Nov 17, 2026 2:19:36 PM net.osmand.obf.preparation.IndexPoiCreator getDatabaseConnection
+INFO: Access sqlite Bgmountains-native.poi.odb running in native mode using disk 
+Nov 17, 2026 2:19:36 PM net.osmand.obf.preparation.IndexCreator initDbAccessor
+INFO: Not using wikidata database to map missing wikidata tags
+Nov 17, 2026 2:19:36 PM net.osmand.obf.preparation.IndexCreator getDatabaseConnection
+INFO: Access sqlite nodes.tmp.odb running in native mode using disk 
+Nov 17, 2026 2:19:36 PM net.osmand.impl.ConsoleProgressImplementation printDebug
+FINE: Memory before task exec: 407896064 free : 246669912
+Nov 17, 2026 2:19:36 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: loading_file/workspace/scratch/53c06a6a118e/optimize/real-obf-final/BGMountains-native.osm started - -1
+Nov 17, 2026 2:19:36 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Task loading_file/workspace/scratch/53c06a6a118e/optimize/real-obf-final/BGMountains-native.osm: work total has changed to -1
+Nov 17, 2026 2:19:36 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Task loading_file/workspace/scratch/53c06a6a118e/optimize/real-obf-final/BGMountains-native.osm: work total has changed to 7099576
+Nov 17, 2026 2:19:36 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Done 1.038 %.
+Nov 17, 2026 2:19:37 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Task loading_file/workspace/scratch/53c06a6a118e/optimize/real-obf-final/BGMountains-native.osm is finished 
+Nov 17, 2026 2:19:37 PM net.osmand.obf.preparation.IndexCreator extractOsmToNodesDB
+INFO: File parsed : 632
+Nov 17, 2026 2:19:37 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Task null is finished 
+Nov 17, 2026 2:19:37 PM net.osmand.obf.preparation.IndexCreator extractOsmToNodesDB
+INFO: File indexed : 633
+Nov 17, 2026 2:19:37 PM net.osmand.impl.ConsoleProgressImplementation printDebug
+FINE: Memory before task exec: 407896064 free : 308654128
+Nov 17, 2026 2:19:37 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: preindex_boundaries_relations started after 626 ms - 6
+Nov 17, 2026 2:19:37 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Task preindex_boundaries_relations: work total has changed to 6
+Nov 17, 2026 2:19:37 PM net.osmand.obf.preparation.OverpassFetcher <init>
+WARNING: OVERPASS_URL environment variable is not set.
+Nov 17, 2026 2:19:37 PM net.osmand.impl.ConsoleProgressImplementation printDebug
+FINE: Memory before task exec: 407896064 free : 293772496
+Nov 17, 2026 2:19:37 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: preindex_boundaries_ways started after 308 ms - 3611
+Nov 17, 2026 2:19:37 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Task preindex_boundaries_ways: work total has changed to 3611
+Nov 17, 2026 2:19:37 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Task preindex_boundaries_ways: work total has changed to 17
+Nov 17, 2026 2:19:37 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Done 5.882 %.
+Nov 17, 2026 2:19:37 PM net.osmand.impl.ConsoleProgressImplementation printDebug
+FINE: Memory before task exec: 407896064 free : 292848192
+Nov 17, 2026 2:19:37 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: process_osm_nodes started after 153 ms - 427
+Nov 17, 2026 2:19:37 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Task process_osm_nodes: work total has changed to 427
+Nov 17, 2026 2:19:37 PM net.osmand.impl.ConsoleProgressImplementation printDebug
+FINE: Memory before task exec: 407896064 free : 256548048
+Nov 17, 2026 2:19:37 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: process_osm_ways started after 273 ms - 3611
+Nov 17, 2026 2:19:37 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Task process_osm_ways: work total has changed to 3611
+Nov 17, 2026 2:19:38 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Done 42.204 %.
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation printDebug
+FINE: Memory before task exec: 407896064 free : 293761504
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: process_osm_rel started after 1287 ms - 6
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Task process_osm_rel: work total has changed to 6
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation printDebug
+FINE: Memory before task exec: 407896064 free : 292712928
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: index_lo_level_ways started after 157 ms - 1553
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Task index_lo_level_ways: work total has changed to 1553
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Task index_lo_level_ways: work total has changed to -1
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation printDebug
+FINE: Memory before task exec: 407896064 free : 284848608
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: pack_rtree_map started after 49 ms - -1
+Pack.packTree : Size of elmts: 3353
+Pack.packTree : Size of elmts: 2920
+Pack.packTree : Size of elmts: 1760
+Pack.packTree : Size of elmts: 314
+Pack.packTree : Size of elmts: 960
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation printDebug
+FINE: Memory before task exec: 407896064 free : 273838560
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: pack_rtree_transp started after 49 ms - -1
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation printDebug
+FINE: Memory before task exec: 407896064 free : 273314272
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Writing map index to binary file... started after 4 ms - -1
+Nov 17, 2026 2:19:39 PM net.osmand.obf.preparation.BinaryMapIndexWriter endWriteMapLevelIndex
+INFO: MAP level SIZE : 307339
+Nov 17, 2026 2:19:39 PM net.osmand.obf.preparation.BinaryMapIndexWriter endWriteMapLevelIndex
+INFO: MAP level SIZE : 213759
+Nov 17, 2026 2:19:39 PM net.osmand.obf.preparation.BinaryMapIndexWriter endWriteMapLevelIndex
+INFO: MAP level SIZE : 95854
+Nov 17, 2026 2:19:39 PM net.osmand.obf.preparation.BinaryMapIndexWriter endWriteMapLevelIndex
+INFO: MAP level SIZE : 15300
+Nov 17, 2026 2:19:39 PM net.osmand.obf.preparation.BinaryMapIndexWriter endWriteMapIndex
+INFO: MAP INDEX SIZE : 635136
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation printDebug
+FINE: Memory before task exec: 407896064 free : 243954144
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Writing route index to binary file... started after 116 ms - -1
+Nov 17, 2026 2:19:39 PM net.osmand.obf.preparation.BinaryMapIndexWriter simulateWriteEndRouteIndex
+INFO: PREROUTE INDEX SIZE : 106250
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation printDebug
+FINE: Memory before task exec: 407896064 free : 232944096
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Start found roads in Normal routing for added to Base routing:  started - 8
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Task Start found roads in Normal routing for added to Base routing: : work total has changed to 8
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Done 12.5 %.
+Nov 17, 2026 2:19:39 PM net.osmand.obf.preparation.ImproveRoadConnectivity getRoadsForImproveBaseRouting
+INFO: All objects in base file 28 to keep isolated 6 to add 0 to remove 1
+Nov 17, 2026 2:19:39 PM net.osmand.obf.preparation.BinaryMapIndexWriter endWriteRouteIndex
+INFO: - ROUTE TYPE SIZE SIZE 12466
+Nov 17, 2026 2:19:39 PM net.osmand.obf.preparation.BinaryMapIndexWriter endWriteRouteIndex
+INFO: - ROUTE COORDINATES SIZE 177350 COUNT 59062
+Nov 17, 2026 2:19:39 PM net.osmand.obf.preparation.BinaryMapIndexWriter endWriteRouteIndex
+INFO: - ROUTE POINTS SIZE 0
+Nov 17, 2026 2:19:39 PM net.osmand.obf.preparation.BinaryMapIndexWriter endWriteRouteIndex
+INFO: - ROUTE STRING SIZE 4508
+Nov 17, 2026 2:19:39 PM net.osmand.obf.preparation.BinaryMapIndexWriter endWriteRouteIndex
+INFO: - ROUTE ID SIZE 3980
+Nov 17, 2026 2:19:39 PM net.osmand.obf.preparation.BinaryMapIndexWriter endWriteRouteIndex
+INFO: -- ROUTE_DATA 209814
+Nov 17, 2026 2:19:39 PM net.osmand.obf.preparation.BinaryMapIndexWriter endWriteRouteIndex
+INFO: ROUTE INDEX SIZE : 106250
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation printDebug
+FINE: Memory before task exec: 407896064 free : 221934048
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Writing poi index to binary file... started after 113 ms - -1
+Nov 17, 2026 2:19:39 PM net.osmand.obf.preparation.IndexPoiCreator collectTopIndexMap
+INFO: Not using global list of poi indexes
+Nov 17, 2026 2:19:39 PM net.osmand.obf.preparation.IndexPoiCreator processPOIIntoTree
+INFO: Geocoding for POI is disabled
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Task null: work total has changed to 1000000
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Done 1 %.
+Nov 17, 2026 2:19:39 PM net.osmand.obf.preparation.IndexPoiCreator processPOIIntoTree
+INFO: POI geocoding full address (0 of 0 for 0.00 sec), city (0 of 0 for 0.00 sec)
+Nov 17, 2026 2:19:39 PM net.osmand.obf.preparation.IndexPoiCreator processPOIIntoTree
+INFO: Poi processing finished
+No clean up poi categories in name index up to 4
+Nov 17, 2026 2:19:39 PM net.osmand.obf.preparation.IndexPoiCreator writeBinaryPoiIndex
+INFO: Poi box processing finished
+Nov 17, 2026 2:19:39 PM net.osmand.obf.preparation.BinaryMapIndexWriter endWritePoiIndex
+INFO: POI INDEX SIZE : 78618
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation printDebug
+FINE: Memory before task exec: 407896064 free : 189952480
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Writing transport index to binary file... started after 180 ms - -1
+Nov 17, 2026 2:19:39 PM net.osmand.obf.preparation.BinaryMapIndexWriter endWriteTransportIndex
+INFO: TRANSPORT INDEX SIZE : 92
+Nov 17, 2026 2:19:39 PM net.osmand.obf.preparation.IndexTransportCreator writeBinaryTransportIndex
+INFO: GtfsInfoStats [avgWaitDiff30Sec=0, avgStopDiff30Sec=0, errorsTimeParsing=0, successTripsParsing=0, errorsTripsStopCounts=0]
+Nov 17, 2026 2:19:39 PM net.osmand.impl.ConsoleProgressImplementation print
+INFO: Task Writing transport index to binary file... is finished 
+Nov 17, 2026 2:19:39 PM net.osmand.obf.preparation.IndexCreator generateIndexes
+INFO: Finish writing binary file

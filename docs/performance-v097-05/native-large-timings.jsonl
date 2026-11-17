@@ -1,0 +1,4 @@
+{"stage": "native-configure", "seconds": 0.173, "status": "ok"}
+{"stage": "native-build", "seconds": 0.196, "status": "ok"}
+{"stage": "transform", "seconds": 50.938, "status": "ok"}
+{"stage": "attach-audit-native", "seconds": 73.705, "status": "ok"}

@@ -1,0 +1,9 @@
+{
+  "img_sha256": "a3f603966ec6f2c3ee9f0eaea0e05c8f217ac38744182abc5ee1e3abc096b879",
+  "raw_osm_bytes": 3075439720,
+  "poi_config_sha256": "80bff09bf11338b9b02ffa549722f8bef57d6f0e092b49c478d0dcdc618d8ed4",
+  "dataset_differs_from_uploaded_log": true,
+  "large_file_validation_workloads_overlapped": true,
+  "full_obf_rebuild_tested": false,
+  "regional_obf_rebuild_tested": true
+}

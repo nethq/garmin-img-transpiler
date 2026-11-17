@@ -1,0 +1,16 @@
+{
+  "native_regression_cases": 6,
+  "v092_cases": 5,
+  "v093_cases": 5,
+  "v095_cases": 4,
+  "registry_audit_cases": 1,
+  "hash_config_cases": 4,
+  "legacy_vector_fixture_passed": true,
+  "native_cmake_build_passed": true,
+  "runtime_only_expat_discovery_build_passed": true,
+  "full_native_preprocessing_passed": true,
+  "independent_large_file_audit_parity": true,
+  "regional_real_obf_with_no_severe_errors": true,
+  "native_and_python_resume_passed": true,
+  "configuration_files_unchanged": true
+}
