@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """v0.95: streaming IMG/OSM native-OsmAnd translation and honest QA.
-Only user-editable controls: config/BGMountains-native-poi-mapping-v094.csv and config/line-mapping.csv.
+See config/README.md for mapping and generated-name settings.
 """
 import argparse,base64,collections,csv,hashlib,json,pathlib,re,sqlite3,sys,xml.etree.ElementTree as ET
+from decimal import Decimal, ROUND_HALF_UP
 from xml.sax.saxutils import escape,quoteattr
 
 def top_level_elements(source):
@@ -89,7 +90,54 @@ SEMANTIC_KEYS = frozenset(('amenity','tourism','emergency','natural','man_made',
     'historic','shop','leisure','building','waterway','railway','power','aeroway',
     'highway','hazard','ford','water','water_source','landuse','barrier',
     'aerialway','craft','military','geological','public_transport','sport'))
-GENERATED_SUFFIX = re.compile(r' - ([A-Z0-9]{7,16})$')
+GENERATED_SUFFIX = re.compile(r' - ([A-Z0-9]{1,16})$')
+
+def configured_lengths(bases, override=None):
+    widths = read_hash_lengths(override) if override else {'*': 6}
+    for c, row in bases.items():
+        width = widths.get(c,widths['*']) if override else int(row.get('hash_length') or 6)
+        skip = int(row.get('hash_skip') or 0)
+        if not 1 <= width <= 13 or not 0 <= skip <= 13 - width:
+            raise ValueError(f'Invalid hash_length for {c}: {width}')
+        if width != widths['*'] or skip:
+            widths[c] = width
+    return widths
+
+def read_hash_lengths(path):
+    lengths = {}
+    for number, row in enumerate(read_csv(path), 2):
+        try:
+            key = row['code'].strip()
+            if key != '*':
+                key = code(key)
+                if not 0 <= int(key, 16) <= 0x1ffff:
+                    raise ValueError('type outside Garmin range')
+            length = int(row['length'])
+            if key in lengths or not 1 <= length <= 13:
+                raise ValueError('duplicate code or length outside 1..13')
+        except (KeyError, AttributeError, ValueError) as exc:
+            raise ValueError(f'{path}:{number}: invalid hash rule {row}') from exc
+        lengths[key] = length
+    if '*' not in lengths:
+        raise ValueError(f'{path}: missing default (*) hash length')
+    return lengths
+
+def poi_suffix(elem, tags, lengths, skip=0):
+    """Match the IMG extractor's FNV-1a seed and rightmost base36 digits."""
+    typ = code(tags['garmin:type'])
+    width = lengths.get(typ, lengths['*'])
+    coords = [str(int((Decimal(elem.attrib[k]) * 10000000).to_integral_value(
+        rounding=ROUND_HALF_UP))) for k in ('lat', 'lon')]
+    seed = '|'.join((tags.get('garmin:mapset', ''), typ, *coords))
+    value = 14695981039346656037
+    for byte in seed.encode('utf-8'):
+        value = ((value ^ byte) * 1099511628211) & 0xffffffffffffffff
+    value //= 36 ** skip
+    digits = []
+    for _ in range(width):
+        value, index = divmod(value, 36)
+        digits.append('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'[index])
+    return ''.join(reversed(digits))
 
 def stable_unknown_hash(elem,tags):
     name=tags.get('name','')
@@ -99,7 +147,7 @@ def stable_unknown_hash(elem,tags):
                    elem.get('lat',''),elem.get('lon','')))
     return base64.b32encode(hashlib.blake2s(seed.encode('utf-8'),digest_size=7).digest()).decode().rstrip('=')[:11]
 
-def add_native_unknown_fallback(elem,tags,rule):
+def add_native_unknown_fallback(elem,tags,rule,generate_label=True):
     """Only unclassified POIs. Named POIs retain their genuine source names."""
     if any(k in tags for k in SEMANTIC_KEYS):return False
     if tags.get('garmin:type') == '0x6600' or 'ele' in tags:
@@ -109,20 +157,24 @@ def add_native_unknown_fallback(elem,tags,rule):
     tags['bgm:synthetic_fallback']='place_locality'
     tags['bgm:classification']='unverified'
     name=tags.get('name','').strip()
-    if not name or tags.get('bgm:generated_name')=='yes' or name.startswith('Garmin обект '):
+    if generate_label and (not name or tags.get('bgm:generated_name')=='yes'):
         tags['name']='Неуточнено - '+stable_unknown_hash(elem,tags)
         tags['bgm:generated_name']='yes'
     return True
 
-def make_cpp_rules(pois,out,labels,conditional=()):
+def make_cpp_rules(pois,out,labels,conditional=(),lengths=None):
     """C++ v0.9 uses these internal stage files; they are NOT user control files."""
     with open(out,'w',encoding='utf-8',newline='') as f,open(labels,'w',encoding='utf-8',newline='') as g:
         w=csv.writer(f);w.writerow(['code','name_contains','mode','tags','note'])
-        l=csv.writer(g);l.writerow(['code','label_bg'])
+        l=csv.writer(g);l.writerow(['code','label_bg','hash_length','hash_skip'])
+        if lengths:
+            for c,width in lengths.items():
+                l.writerow([c,'',width,pois.get(c, {}).get('hash_skip') or 0])
         for c,row in sorted(pois.items(),key=lambda t:int(t[0],0)):
             action=row.get('action','replace').strip().lower()
             if action not in ('replace','append','raw','drop'):raise ValueError('Invalid action for '+c)
             vals=tags_from_string(row.get('osm_tags',''))
+            if row.get('search_fallback'):vals['bgm:lookup']=row['search_fallback']
             if action=='raw':action='replace';vals={}
             if action=='drop':vals={}
             w.writerow([c,'',action,';'.join(k+'='+v for k,v in vals.items()),'v0.92 compiled from poi-mapping.csv'])
@@ -132,6 +184,7 @@ def make_cpp_rules(pois,out,labels,conditional=()):
         for row in conditional:
             c=row['code'];action=(row.get('action') or 'replace').strip().lower()
             vals=tags_from_string(row.get('osm_tags',''))
+            if row.get('search_fallback'):vals['bgm:lookup']=row['search_fallback']
             if action=='raw':action='keep_raw';vals={}
             w.writerow([c,row['name_contains'],action,
                 ';'.join(k+'='+v for k,v in vals.items()),
@@ -168,7 +221,7 @@ def inspect_counts(osm,pois,lines,out,strict=False):
     pathlib.Path(out).write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     return summary
 
-def transform(source,dest,pois,lines,report,strict=False):
+def transform(source,dest,pois,lines,report,strict=False,lengths=None):
     """Streaming write; route metadata held in SQLite so nationwide builds do not need RAM for all nodes/ways.
     Native route relations are built only from selected Garmin colored overlay ways,
     NOT from invented highway=path edges.
@@ -194,8 +247,17 @@ def transform(source,dest,pois,lines,report,strict=False):
                         # Unclassified Garmin POIs intentionally remain raw: stock OsmAnd
                         # cannot visually draw a unique icon for each without installed resources.
                     else:gaps[c]+=1;tags.pop('bgm_poi',None)
-                    if add_native_unknown_fallback(el,tags,pois.get(c)):
+                    if add_native_unknown_fallback(el,tags,pois.get(c),generate_label=not (lengths and c)):
                         synthetic+=1
+                    if lengths and c and (tags.get('bgm:generated_name') == 'yes' or not tags.get('name','').strip()):
+                        if tags.get('bgm:synthetic_fallback') == 'place_locality':
+                            label = 'Неуточнено'
+                        else:
+                            label = pois.get(code(c), {}).get('label_bg') or f'Garmin обект {code(c)}'
+                        tags['name'] = label + ' - ' + poi_suffix(el, tags, lengths, int(pois.get(code(c), {}).get('hash_skip') or 0))
+                        tags['bgm:generated_name'] = 'yes'
+                    if c == '0x6600' and tags.get('bgm:generated_name') != 'yes':
+                        tags.pop('bgm:lookup', None)  # retain the source's numeric elevation annotation
                     set_tags(el,tags);seen[c]+=1
                 out.write(ET.tostring(el,encoding='unicode')+'\n');emitted+=1
             elif el.tag=='way':
@@ -251,7 +313,7 @@ def transform(source,dest,pois,lines,report,strict=False):
                 rel=ET.Element('relation',id=str(-relations),version='1')
                 for wid in sorted(members):ET.SubElement(rel,'member',type='way',ref=str(wid),role='')
                 row=lines[c]
-                tags={'type':'route','route':'hiking','network':row.get('network') or 'lwn',
+                tags={'type':'route','route':'hiking','network':row.get('network'),
                     'garmin:type':c,'bgm:source_feature':'extended_polyline',
                     'bgm:confidence':row.get('route_confidence','color_only')}
                 if row.get('osmc_symbol'):tags['osmc:symbol']=row['osmc_symbol']
@@ -286,7 +348,7 @@ def template(catalog,poi_file,line_file,osm=None):
                     if t.get('garmin:feature')=='extended_polyline':lc[t.get('garmin:type','')]+=1
                 el.clear()
     lr=[{'code':k,'source_count':v,'legend_bg':'','legacy_color':'', 'osm_way_tags':'',
-        'route_mode':'preserve','osmc_symbol':'','network':'lwn','route_confidence':'unknown',
+        'route_mode':'preserve','osmc_symbol':'','network':'','route_confidence':'unknown',
         'priority':'normal','note':'Unmapped type: check Garmin legend and geometry before enabling'} for k,v in sorted(lc.items())]
     with open(poi_file,'w',encoding='utf-8',newline='') as f:
         w=csv.DictWriter(f,fieldnames=list(pr[0]) if pr else ['code','source_count','legend_bg','legend_en','meaning_confidence','osm_tags','label_bg','priority','zoom_hint','action','note']);w.writeheader();w.writerows(pr)
@@ -298,6 +360,8 @@ def main():
     p=argparse.ArgumentParser(description=__doc__);sub=p.add_subparsers(dest='mode',required=True)
     for cmd in ['prepare','transform','audit','template']:
         s=sub.add_parser(cmd);s.add_argument('--poi',required=True);s.add_argument('--lines',required=True)
+        if cmd in ('prepare','transform'):
+            s.add_argument('--hash-config',default=None)
         if cmd=='prepare':s.add_argument('--out',required=True)
         elif cmd=='transform':s.add_argument('--osm',required=True);s.add_argument('--out',required=True);s.add_argument('--report',required=True)
         elif cmd=='audit':s.add_argument('--osm',required=True);s.add_argument('--out',required=True);s.add_argument('--strict',action='store_true')
@@ -308,8 +372,8 @@ def main():
         ps,conditional=read_poi_configuration(a.poi);ls=line_mapping(a.lines)
         if a.mode=='prepare':
             out=pathlib.Path(a.out);out.mkdir(parents=True,exist_ok=True)
-            make_cpp_rules(ps,out/'cpp-poi-override.csv',out/'cpp-name-labels.csv',conditional);res={'poi_types':len(ps),'name_specific_rules':len(conditional),'line_types':len(ls)}
-        elif a.mode=='transform':res=transform(a.osm,a.out,ps,ls,a.report)
+            make_cpp_rules(ps,out/'cpp-poi-override.csv',out/'cpp-name-labels.csv',conditional,configured_lengths(ps,a.hash_config));res={'poi_types':len(ps),'name_specific_rules':len(conditional),'line_types':len(ls)}
+        elif a.mode=='transform':res=transform(a.osm,a.out,ps,ls,a.report,lengths=configured_lengths(ps,a.hash_config))
         else:res=inspect_counts(a.osm,ps,ls,a.out,a.strict)
     print(json.dumps(res,ensure_ascii=False,indent=2));return 0
 if __name__=='__main__':sys.exit(main())

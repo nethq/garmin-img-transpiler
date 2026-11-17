@@ -2,16 +2,16 @@
 
 **This is the integrated source release.** It replaces the v0.92/v0.93 Python
 pipeline and v0.94 standalone CSVs. Do not combine scripts from older ZIPs:
-those versions accept different flags and do not apply the 79 name-conditional
-rules. This archive has **one POI config and one line config**.
+those versions accept different flags and do not apply the current name-conditional
+rules. Edit the POI profile and line mapping described in [the configuration guide](config/README.md).
 
 ## Quick start (Ubuntu/Debian)
 
 ```bash
 sudo apt update
 sudo apt install -y cmake g++ make libpng-dev libsqlite3-dev python3 openjdk-21-jre-headless unzip
-unzip BGMountains-garmin2osm-v0.95-integrated.zip
-cd BGMountains-garmin2osm-v0.95
+unzip garmin-img-transpiler-hiking.zip
+cd garmin-img-transpiler
 ```
 
 Use **exactly** this from the release root (where `scripts/` and `config/` are):
@@ -19,7 +19,7 @@ Use **exactly** this from the release root (where `scripts/` and `config/` are):
 ```bash
 nohup python3 scripts/build_bgmountains.py \
   --img "$HOME/gmapsupp.img" \
-  --poi-config config/BGMountains-native-poi-mapping-v094.csv \
+  --poi-config config/poi-mapping.csv \
   --line-config config/line-mapping.csv \
   --out bg-mountains-v095-build \
   --download-creator \
@@ -27,7 +27,7 @@ nohup python3 scripts/build_bgmountains.py \
   --java-opts '-Xms512M -Xmx25G' > bg-v095.log 2>&1 &
 ```
 
-The `--poi-config` and `--line-config` arguments are **implemented and tested**.
+Use `--review-pois` to generate an editable POI CSV from an IMG. Use `--poi-config` and `--line-config` to select conversion rules.
 Other supported flags: `--creator /path/to/OsmAndMapCreator`, `--bbox W,S,E,N`,
 `--prepare-only`, `--keep-raw`, `--template`, `--attach-routes`,
 `--disk-headroom-gb N`, `--ignore-disk-check`, `--jobs N` (default 1).
@@ -44,7 +44,7 @@ with generous free space. `-Xmx25G` controls heap RAM, **not disk usage**.
 ```bash
 python3 scripts/build_bgmountains.py \
   --img "$HOME/gmapsupp.img" \
-  --poi-config config/BGMountains-native-poi-mapping-v094.csv \
+  --poi-config config/poi-mapping.csv \
   --line-config config/line-mapping.csv \
   --bbox '25.05,42.43,25.16,42.54' \
   --jobs 8 \
@@ -58,11 +58,11 @@ must exit nonzero on a failed conversion subprocess. You can instead pass an
 existing MapCreator with `--creator ...` (omit `--prepare-only`) for a small
 real OBF build.
 
-## Two editable configuration files
+## Editable configuration files
 
-### 1. `config/BGMountains-native-poi-mapping-v094.csv`
+### 1. `config/poi-mapping.csv`
 
-1,871 base hex-code entries plus 79 **name-specific** exceptions (1,950 data
+1,871 base hex-code entries plus 80 **name-specific** exceptions (1,951 data
 rows). Columns include: `code`, `source_count`, `legend_bg`, `legend_en`,
 `meaning_confidence`, `osm_tags`, `label_bg`, `priority`, `zoom_hint`, `action`,
 `note`, examples, and optional `name_contains`. For conditional matching,
@@ -74,18 +74,13 @@ features unclassified until private-map fallback; `drop` discards the feature.
 
 The Python pipeline automatically creates `cpp-poi-override.csv` and
 `cpp-name-labels.csv` **inside the build output directory**. These are generated
-intermediates, **not third and fourth user configuration files**. There is no
+intermediates. There is no
 need to manually supply them or an icon pack to OsmAnd.
 
 Important native examples:
 
-- `0x6414`: `amenity=drinking_water;man_made=water_tap` (legacy v18 dual
-  classification); named dry sources such as `(Сух.)` remove drinking-water
-  classification and get `drinking_water=no`.
-- `0x6500`: `man_made=water_intake;amenity=water_point;drinking_water=unknown`
-  for **private-map index compatibility**, not evidence that its water is
-  potable, available or accessible. Named shaft (`Шах...`) exceptions remove
-  the compatibility alias.
+- `0x6414`: one drinking-water POI for an ordinary tap; explicitly dry taps receive water_tap and drinking_water=no.
+- `0x6500`: a water intake carries `man_made=water_intake;drinking_water=unknown`. Named fountains have their own rule.
 - `0x6511`: `natural=spring` (potability not asserted).
 - `0x6402`: `building=yes` by default, explicitly named `Заслон` or `Хижа`
   may become shelter/hut (availability/access not verified).
@@ -103,7 +98,7 @@ and rendering apply to the resulting OBF.
 
 ### 2. `config/line-mapping.csv`
 
-50 Garmin line types (20 currently have `route_mode=relation`, 30 preserve
+50 Garmin line types (19 currently have `route_mode=relation`, 31 preserve
 source geometry). Columns include Garmin `code`, legend, color,
 `osm_way_tags`, `route_mode`, `osmc_symbol`, `network`, confidence and priority.
 Selected source overlay segments are grouped into native
@@ -113,6 +108,18 @@ paths from decoration lines. Opt-in `--attach-routes` matches overlays to real
 existing path geometries, but can use significant memory; it is off by default.
 **Existing physical path routing remains in the data.** Exact phone-side color,
 icon and at-zoom visibility still depend on stock OsmAnd.
+
+### Generate a comprehensive POI configuration from your BGMountains IMG
+
+```bash
+python3 scripts/build_bgmountains.py --img gmapsupp.img --review-pois --out review --jobs 4
+# Edit review/poi-review.csv, then build with those settings
+python3 scripts/build_bgmountains.py --img gmapsupp.img --poi-config review/poi-review.csv \
+  --creator /path/to/OsmAndMapCreator --out hiking-build --jobs 4
+```
+
+The POI CSV controls generated labels, hash windows, private search entries and
+native OBF map-index zoom bands. See [the hiking profile guide](config/README.md).
 
 ## New or unknown IMG maps: generate configuration templates
 
@@ -143,25 +150,18 @@ report, **not a claim of final icon visibility**:
 
 ```bash
 python3 tools/audit_osmand_poi_mapping.py \
-  --mapping config/BGMountains-native-poi-mapping-v094.csv \
+  --mapping config/poi-mapping.csv \
   --poi-types /path/to/poi_types.xml \
   --report native-poi-audit.csv --json native-poi-audit.json
 ```
 
 Source: https://github.com/osmandapp/OsmAnd-resources/blob/master/poi/poi_types.xml
 
-## Tested, and NOT tested
+## Validation
 
-- C++ Release build, 6 CTest test groups, conditional POI CSV generation,
-  CLI options, and simulated MapCreator orchestration passed.
-- Original 422 MiB IMG: regional `--jobs 8` and serial preparation succeeded
-  with identical 427 POI coordinate/name/tag records and 6 route relations.
-- Separate region: `(Сух.)` water-tap conditional correctly produced
-  `man_made=water_tap;drinking_water=no`, and no `amenity=drinking_water`.
-- **A real OsmAndMapCreator binary was not available here**; its host was
-  unreachable. The OBF orchestration unit test uses a **mock**, so native
-  nationwide OBF compilation and phone rendering are not verified. Do not
-  mistake that mock for real OBF validation.
+Real BGMountains IMG inventory, regional extractions, real OsmAndMapCreator
+compilation and Binary Inspector checks are documented in [the configuration guide](config/README.md).
+The stock phone renderer has separate icon and label rules.
 
 License: the source bundle contains historically BGMountains-derived
 classification information. Treat that data as private-map material under

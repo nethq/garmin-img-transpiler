@@ -1,0 +1,264 @@
+code,label_bg,confidence
+0x200,Столица,legend
+0x800,Град >75 000,legend
+0x900,Град <75 000,legend
+0xd00,Селище,uncertain
+0xe00,Квартал,uncertain
+0x1100,Населено място,uncertain
+0x2800,Garmin обект 0x2800,source-inferred
+0x2a07,Спортен обект,uncertain
+0x2a0e,Търговски обект,uncertain
+0x2b00,Garmin обект 0x2b00,source-inferred
+0x2c01,Garmin обект 0x2c01,unknown
+0x2c02,Детска градина,inferred
+0x2c03,Читалище,inferred
+0x2c05,Училище,legend
+0x2c06,Garmin обект 0x2c06,unknown
+0x2c07,Garmin обект 0x2c07,unknown
+0x2c08,Конна база,inferred
+0x2c0b,Църква,legend
+0x2d01,Garmin обект 0x2d01,unknown
+0x2d02,Търговски обект,uncertain
+0x2d03,Garmin обект 0x2d03,unknown
+0x2d09,Garmin обект 0x2d09,source-inferred
+0x2e02,Хранителен магазин,inferred
+0x2e03,Магазин,inferred
+0x2e04,Garmin обект 0x2e04,unknown
+0x2e05,Аптека,legend
+0x2e06,Търговски обект,uncertain
+0x2e07,Магазин за дрехи,legend
+0x2e08,Garmin обект 0x2e08,unknown
+0x2e09,Garmin обект 0x2e09,unknown
+0x2e0a,Автокъща,inferred
+0x2e0b,Garmin обект 0x2e0b,unknown
+0x2f00,Промишлен обект,inferred
+0x2f01,Бензиностанция,inferred
+0x2f03,Автосервиз,inferred
+0x2f05,Garmin обект 0x2f05,source-inferred
+0x2f06,Банка,inferred
+0x2f08,Обществен обект,uncertain
+0x2f0a,Синагога,legend
+0x2f0b,Тренировъчна площадка,inferred
+0x2f0c,Джамия,legend
+0x2f0e,Автомивка,legend
+0x3001,Garmin обект 0x3001,unknown
+0x3002,Първа помощ,inferred
+0x3003,Кметство,inferred
+0x3006,Garmin обект 0x3006,unknown
+0x3007,Помпена станция,inferred
+0x3008,Пожарна,legend
+0x4700,Пристанище,legend
+0x4e00,Garmin обект 0x4e00,unknown
+0x6400,Кариера,legend
+0x6401,Мост,legend
+0x6402,Сграда,legend
+0x6403,Гробище,legend
+0x6404,Църква,legend
+0x6405,Ловна хижа,legend
+0x6406,Бариера,legend
+0x6407,Пикник,legend
+0x6408,ПСС,legend
+0x6409,Паметник,legend
+0x640a,Опасност,legend
+0x640b,Параклис,legend
+0x640c,Мина,legend
+0x640d,Лифт,legend
+0x640e,Спирка,legend
+0x640f,Гробище,legend
+0x6410,Garmin обект 0x6410,unknown
+0x6411,Кула,legend
+0x6413,Тунел,legend
+0x6414,Вода - Чешма,legend
+0x6415,Място за бивакуване,legend
+0x6416,Руини,legend
+0x6417,Вода - Кладенец,legend
+0x6418,Вятърен генератор,inferred
+0x6419,Фотоволтаична централа,inferred
+0x641a,Църква,legend
+0x641c,Спирка,legend
+0x641d,Garmin обект 0x641d,unknown
+0x641e,Garmin обект 0x641e,unknown
+0x641f,Garmin обект 0x641f,unknown
+0x6500,Вода - Каптаж,legend
+0x6501,Ресторант,legend
+0x6502,Речен брод,legend
+0x6503,Кръстопът,legend
+0x6506,Музей,legend
+0x650b,Зимна маркировка,legend
+0x6511,Вода - Извор,legend
+0x6600,Височинна кота,legend-ambiguous
+0x6601,Природен феномен,legend
+0x6602,Панорама - Гледка,legend
+0x6603,Триангулачна точка,legend
+0x6604,Garmin обект 0x6604,unknown
+0x6608,Хотел,legend
+0x6609,Хижа,legend
+0x660a,Заслон,legend
+0x660b,Туристическа маркировка,legend
+0x660c,Garmin обект 0x660c,source-inferred
+0x660d,Garmin обект 0x660d,unknown
+0x660e,Garmin обект 0x660e,unknown
+0x660f,Garmin обект 0x660f,unknown
+0x6610,Поляна,legend
+0x6613,Водопад,legend
+0x6614,Скала,legend
+0x6615,Пещера,legend
+0x6616,Връх,verified
+0x6617,Връх,legend
+0x6618,Дърво,legend
+0x6619,Праисторически обект,legend
+0x661a,Античен обект,legend
+0x661b,Средновековен обект,legend
+0x661c,Могила,uncertain
+0x661d,Стопанска постройка,inferred
+0x661e,Garmin обект 0x661e,source-inferred
+0x10000,Garmin обект 0x10000,unverified-extended
+0x10018,Garmin обект 0x10018,unverified-extended
+0x10100,Garmin обект 0x10100,unverified-extended
+0x10118,Garmin обект 0x10118,unverified-extended
+0x1011e,Garmin обект 0x1011e,unverified-extended
+0x10204,Garmin обект 0x10204,unverified-extended
+0x10205,Garmin обект 0x10205,unverified-extended
+0x10209,Garmin обект 0x10209,unverified-extended
+0x1020a,Garmin обект 0x1020a,unverified-extended
+0x1020b,Garmin обект 0x1020b,unverified-extended
+0x1020c,Garmin обект 0x1020c,unverified-extended
+0x10218,Garmin обект 0x10218,unverified-extended
+0x10301,Garmin обект 0x10301,unverified-extended
+0x10401,Garmin обект 0x10401,unverified-extended
+0x10402,Garmin обект 0x10402,unverified-extended
+0x10403,Garmin обект 0x10403,unverified-extended
+0x1040d,Garmin обект 0x1040d,unverified-extended
+0x1040e,Garmin обект 0x1040e,unverified-extended
+0x1041e,Garmin обект 0x1041e,unverified-extended
+0x10501,Garmin обект 0x10501,unverified-extended
+0x10602,Garmin обект 0x10602,unverified-extended
+0x1061d,Garmin обект 0x1061d,unverified-extended
+0x10701,Garmin обект 0x10701,unverified-extended
+0x10705,Garmin обект 0x10705,unverified-extended
+0x10706,Garmin обект 0x10706,unverified-extended
+0x10801,Garmin обект 0x10801,unverified-extended
+0x10903,Garmin обект 0x10903,unverified-extended
+0x10a01,Garmin обект 0x10a01,unverified-extended
+0x10b01,Garmin обект 0x10b01,unverified-extended
+0x10b09,Garmin обект 0x10b09,unverified-extended
+0x10c00,Garmin обект 0x10c00,unverified-extended
+0x10d01,Garmin обект 0x10d01,unverified-extended
+0x1161f,Garmin обект 0x1161f,unverified-extended
+0x1171e,Garmin обект 0x1171e,unverified-extended
+0x1181f,Garmin обект 0x1181f,unverified-extended
+0x11901,Garmin обект 0x11901,unverified-extended
+0x11902,Garmin обект 0x11902,unverified-extended
+0x11a02,Garmin обект 0x11a02,unverified-extended
+0x1201f,Garmin обект 0x1201f,unverified-extended
+0x12102,Garmin обект 0x12102,unverified-extended
+0x12502,Garmin обект 0x12502,unverified-extended
+0x12a03,Garmin обект 0x12a03,unverified-extended
+0x12c1e,Garmin обект 0x12c1e,unverified-extended
+0x12d01,Garmin обект 0x12d01,unverified-extended
+0x12e1f,Garmin обект 0x12e1f,unverified-extended
+0x13001,Garmin обект 0x13001,unverified-extended
+0x1321f,Garmin обект 0x1321f,unverified-extended
+0x1331f,Garmin обект 0x1331f,unverified-extended
+0x13400,Garmin обект 0x13400,unverified-extended
+0x13a01,Garmin обект 0x13a01,unverified-extended
+0x13c03,Garmin обект 0x13c03,unverified-extended
+0x13d1e,Garmin обект 0x13d1e,unverified-extended
+0x1411e,Garmin обект 0x1411e,unverified-extended
+0x14400,Garmin обект 0x14400,unverified-extended
+0x14401,Garmin обект 0x14401,unverified-extended
+0x1441c,Garmin обект 0x1441c,unverified-extended
+0x14501,Garmin обект 0x14501,unverified-extended
+0x14602,Garmin обект 0x14602,unverified-extended
+0x1461c,Garmin обект 0x1461c,unverified-extended
+0x1461f,Garmin обект 0x1461f,unverified-extended
+0x1471f,Garmin обект 0x1471f,unverified-extended
+0x14803,Garmin обект 0x14803,unverified-extended
+0x1481f,Garmin обект 0x1481f,unverified-extended
+0x14a1e,Garmin обект 0x14a1e,unverified-extended
+0x14b01,Garmin обект 0x14b01,unverified-extended
+0x14c01,Garmin обект 0x14c01,unverified-extended
+0x14d1f,Garmin обект 0x14d1f,unverified-extended
+0x14e1e,Garmin обект 0x14e1e,unverified-extended
+0x15200,Garmin обект 0x15200,unverified-extended
+0x15303,Garmin обект 0x15303,unverified-extended
+0x1541d,Garmin обект 0x1541d,unverified-extended
+0x15501,Garmin обект 0x15501,unverified-extended
+0x15800,Garmin обект 0x15800,unverified-extended
+0x15a00,Garmin обект 0x15a00,unverified-extended
+0x15e01,Garmin обект 0x15e01,unverified-extended
+0x16103,Garmin обект 0x16103,unverified-extended
+0x16201,Garmin обект 0x16201,unverified-extended
+0x16701,Garmin обект 0x16701,unverified-extended
+0x1681c,Garmin обект 0x1681c,unverified-extended
+0x1681d,Garmin обект 0x1681d,unverified-extended
+0x16a00,Garmin обект 0x16a00,unverified-extended
+0x16b1c,Garmin обект 0x16b1c,unverified-extended
+0x16e1f,Garmin обект 0x16e1f,unverified-extended
+0x17000,Garmin обект 0x17000,unverified-extended
+0x1711d,Garmin обект 0x1711d,unverified-extended
+0x17303,Garmin обект 0x17303,unverified-extended
+0x1731e,Garmin обект 0x1731e,unverified-extended
+0x1751f,Garmin обект 0x1751f,unverified-extended
+0x1771e,Garmin обект 0x1771e,unverified-extended
+0x1791e,Garmin обект 0x1791e,unverified-extended
+0x17d1e,Garmin обект 0x17d1e,unverified-extended
+0x17e03,Garmin обект 0x17e03,unverified-extended
+0x18003,Garmin обект 0x18003,unverified-extended
+0x1811e,Garmin обект 0x1811e,unverified-extended
+0x18302,Garmin обект 0x18302,unverified-extended
+0x1861d,Garmin обект 0x1861d,unverified-extended
+0x1861f,Garmin обект 0x1861f,unverified-extended
+0x18901,Garmin обект 0x18901,unverified-extended
+0x18a1f,Garmin обект 0x18a1f,unverified-extended
+0x18c1e,Garmin обект 0x18c1e,unverified-extended
+0x18d01,Garmin обект 0x18d01,unverified-extended
+0x19001,Garmin обект 0x19001,unverified-extended
+0x1921f,Garmin обект 0x1921f,unverified-extended
+0x19a00,Garmin обект 0x19a00,unverified-extended
+0x19d03,Garmin обект 0x19d03,unverified-extended
+0x1a11f,Garmin обект 0x1a11f,unverified-extended
+0x1a401,Garmin обект 0x1a401,unverified-extended
+0x1a501,Garmin обект 0x1a501,unverified-extended
+0x1a51c,Garmin обект 0x1a51c,unverified-extended
+0x1a800,Garmin обект 0x1a800,unverified-extended
+0x1a81c,Garmin обект 0x1a81c,unverified-extended
+0x1a91c,Garmin обект 0x1a91c,unverified-extended
+0x1a91f,Garmin обект 0x1a91f,unverified-extended
+0x1ab1f,Garmin обект 0x1ab1f,unverified-extended
+0x1b101,Garmin обект 0x1b101,unverified-extended
+0x1b31f,Garmin обект 0x1b31f,unverified-extended
+0x1b402,Garmin обект 0x1b402,unverified-extended
+0x1b41c,Garmin обект 0x1b41c,unverified-extended
+0x1b703,Garmin обект 0x1b703,unverified-extended
+0x1ba03,Garmin обект 0x1ba03,unverified-extended
+0x1be1c,Garmin обект 0x1be1c,unverified-extended
+0x1c11e,Garmin обект 0x1c11e,unverified-extended
+0x1c31d,Garmin обект 0x1c31d,unverified-extended
+0x1c500,Garmin обект 0x1c500,unverified-extended
+0x1c71f,Garmin обект 0x1c71f,unverified-extended
+0x1c81e,Garmin обект 0x1c81e,unverified-extended
+0x1cb1f,Garmin обект 0x1cb1f,unverified-extended
+0x1ce02,Garmin обект 0x1ce02,unverified-extended
+0x1d501,Garmin обект 0x1d501,unverified-extended
+0x1d51e,Garmin обект 0x1d51e,unverified-extended
+0x1d61f,Garmin обект 0x1d61f,unverified-extended
+0x1d71c,Garmin обект 0x1d71c,unverified-extended
+0x1d800,Garmin обект 0x1d800,unverified-extended
+0x1da01,Garmin обект 0x1da01,unverified-extended
+0x1da1e,Garmin обект 0x1da1e,unverified-extended
+0x1db01,Garmin обект 0x1db01,unverified-extended
+0x1db1e,Garmin обект 0x1db1e,unverified-extended
+0x1db1f,Garmin обект 0x1db1f,unverified-extended
+0x1dc01,Garmin обект 0x1dc01,unverified-extended
+0x1de1f,Garmin обект 0x1de1f,unverified-extended
+0x1e101,Garmin обект 0x1e101,unverified-extended
+0x1e21f,Garmin обект 0x1e21f,unverified-extended
+0x1ea00,Garmin обект 0x1ea00,unverified-extended
+0x1ec1d,Garmin обект 0x1ec1d,unverified-extended
+0x1f401,Garmin обект 0x1f401,unverified-extended
+0x1f501,Garmin обект 0x1f501,unverified-extended
+0x1fb01,Garmin обект 0x1fb01,unverified-extended
+0x1ff00,Garmin обект 0x1ff00,unverified-extended
+0x1ff11,Garmin обект 0x1ff11,unverified-extended
+0x1ff18,Garmin обект 0x1ff18,unverified-extended

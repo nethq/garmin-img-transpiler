@@ -3,3 +3,8 @@ garmin2osmand-v3/*.osm
 *.ocbf*
 compiling-obf/*
 bgmountains-build/*
+data/*
+samples/*
+
+__pycache__/
+/build/

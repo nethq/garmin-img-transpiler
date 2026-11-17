@@ -10,7 +10,7 @@ def load(file,comments=False):
 class TestBGMLegend(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.rules={r['code']:r for r in load(ROOT/'config/poi-overrides-legend-reviewed.csv',True)}
+        cls.rules={r['code']:r for r in load(ROOT/'tests/fixtures/historical/poi-overrides-legend-reviewed.csv',True)}
         cls.strict={r['code']:r for r in load(ROOT/'data/BGMountains-unique-poi-types-STRICT-reviewed.csv')}
         cls.legacy={r['code']:r for r in load(ROOT/'data/BGMountains-unique-poi-types-reviewed.csv')}
         cls.corrections=load(ROOT/'data/legend-corrections-log.csv')

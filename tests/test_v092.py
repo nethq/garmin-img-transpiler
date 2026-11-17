@@ -4,22 +4,24 @@ import csv,importlib.util,json,pathlib,subprocess,sys,tempfile,unittest,xml.etre
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 spec=importlib.util.spec_from_file_location('translator',ROOT/'scripts/native_translate.py')
 t=importlib.util.module_from_spec(spec);spec.loader.exec_module(t)
-POI=ROOT/'config/BGMountains-native-poi-mapping-v094.csv';LINES=ROOT/'config/line-mapping.csv'
+POI=ROOT/'config/poi-mapping.csv';LINES=ROOT/'config/line-mapping.csv'
 class Native092(unittest.TestCase):
  def test_native_source_semantics(self):
   rows=t.mapping(POI)
   self.assertGreaterEqual(len(rows),263)
   for c,tags in [('0x6414','amenity=drinking_water'),('0x6511','natural=spring'),('0x6500','man_made=water_intake'),('0x660a','amenity=shelter'),('0x6609','tourism=alpine_hut'),('0x6401','man_made=bridge')]:
    self.assertIn(tags,rows[c]['osm_tags'])
-  self.assertEqual(rows['0x6402']['label_bg'],'Заслон - Сграда')
+  self.assertEqual(rows['0x6402']['label_bg'],'Сграда')
   self.assertIn(rows['0x6600']['action'],('append','raw'))
   self.assertFalse(any('leisure=marina' in r['osm_tags'] for r in rows.values()))
   self.assertFalse(any('tourism=information;information=board' in r['osm_tags'] for r in rows.values()))
   self.assertTrue(all('garmin:type' not in r['osm_tags'] for r in rows.values()))
   self.assertTrue(all(int(rows[k]['zoom_hint'])<=12 for k in ('0x6414','0x6511','0x6500','0x660a')))
- def test_config_only_two_and_types(self):
-  self.assertEqual(set(p.name for p in (ROOT/'config').glob('*.csv')),{'BGMountains-native-poi-mapping-v094.csv','line-mapping.csv'})
-  self.assertTrue(any(x.get('route_mode')=='relation' for x in t.line_mapping(LINES).values()))
+ def test_config_inventory_and_types(self):
+  self.assertEqual(set(p.name for p in (ROOT/'config').glob('*.csv')),{'poi-mapping.csv','line-mapping.csv'})
+  lines=t.line_mapping(LINES)
+  self.assertEqual(sum(row['route_mode']=='relation' for row in lines.values()),19)
+  self.assertEqual(lines['0x10f17']['route_mode'],'preserve')
   for line in t.line_mapping(LINES).values():
    if line['route_mode']=='relation':self.assertTrue(line['osmc_symbol'])
  def test_native_relation_members_and_poi_provenance(self):

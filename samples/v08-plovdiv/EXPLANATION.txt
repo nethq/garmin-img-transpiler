@@ -1,1 +1,0 @@
-Actual original IMG bbox: 24.640,42.020,24.665,42.050. Contains 57 extracted POIs, including the three user-provided coordinates. Not an OBF proof.

@@ -244,6 +244,10 @@ std::string resolveNameFix(const std::string&map,int type,double lat,double lon,
 // Display names for otherwise anonymous Garmin POIs. Stable across serial/parallel
 // runs and repeated exports; does not depend on output node IDs or iteration order.
 std::unordered_map<int,std::string> fallbackLabels;
+std::unordered_map<int,unsigned> hashLengths;
+std::unordered_map<int,unsigned> hashSkip;
+unsigned defaultHashLength=11;
+bool fixedHashWidth=false;
 void loadFallbackLabels(const std::string&filename){
  if(filename.empty())return;
  std::ifstream in(filename);if(!in)fail("Cannot open fallback POI labels: "+filename);
@@ -254,6 +258,20 @@ void loadFallbackLabels(const std::string&filename){
   auto cols=csvParse(line);
   if(cols.size()<2)fail("POI labels require code,label_bg columns at line "+std::to_string(n));
   if(cols[0]=="code")continue;
+  if(cols.size()>2 && !cols[2].empty()){
+   size_t end=0;
+   int width=std::stoi(cols[2],&end);
+   if(end!=cols[2].size() || width<1 || width>13)fail("Invalid hash length at "+filename+":"+std::to_string(n));
+   fixedHashWidth=true;
+   if(cols[0]=="*"){defaultHashLength=width;continue;}
+   int type=parseType(cols[0]);
+   hashLengths[type]=width;
+   if(cols.size()>3 && !cols[3].empty()){
+    int skip=std::stoi(cols[3],&end);
+    if(end!=cols[3].size() || skip<0 || skip>13-width)fail("Invalid hash skip at "+filename+":"+std::to_string(n));
+    hashSkip[type]=skip;
+   }
+  }
   int t=parseType(cols[0]);
   if(cols[1].empty())continue;
   fallbackLabels[t]=cols[1];
@@ -273,10 +291,13 @@ std::string fallbackPoiName(const std::string&map,int type,double lat,double lon
  input<<map<<'|'<<code(type)<<'|'<<int64_t(std::llround(lat*1e7))<<'|'<<int64_t(std::llround(lon*1e7));
  uint64_t h=14695981039346656037ULL;
  for(unsigned char c:input.str()){h^=c;h*=1099511628211ULL;}
- // 11 base36 characters retain ~57 bits. Collision risk for a full map is tiny,
- // but coordinates + mapset are also present in the original data for disambiguation.
+ const auto widthRule=hashLengths.find(type);
+ const auto width=widthRule==hashLengths.end()?defaultHashLength:widthRule->second;
+ auto skip=hashSkip.find(type);
+ if(skip!=hashSkip.end())for(unsigned i=0;i<skip->second;++i)h/=36;
  auto suffix=compactBase36(h);
- if(suffix.size()>11)suffix=suffix.substr(suffix.size()-11);
+ if(suffix.size()>width)suffix.erase(0,suffix.size()-width);
+ else if(fixedHashWidth)suffix.insert(0,width-suffix.size(),'0');
  return desc+" - "+suffix;
 }
 
@@ -409,9 +430,10 @@ void processMap(const Map&m,Store*db,Stats&stats,const Options&o,std::ostream*po
     const bool generatedName=originalName.empty();
     const std::string name=generatedName?fallbackPoiName(m.name,typ,lat,lon):originalName;
     stats.byType[{3,typ}]++;stats.points++;
-    auto&info=stats.poiTypes[typ];info.count++;if(!name.empty())info.named++;
-    addSample(info,{m.name,name,lat,lon},o.examples);
-    auto tags=configuredPoi(typ,name);
+    auto&info=stats.poiTypes[typ];info.count++;if(!generatedName)info.named++;
+    addSample(info,{m.name,originalName,lat,lon},o.examples);
+    auto tags=configuredPoi(typ,originalName);
+    if(tags && generatedName)tag(*tags,"name",name);
     if(poiManifest)(*poiManifest)<<csvQuote(m.name)<<","<<csvQuote(extended?"extended":"classic")<<","<<csvQuote(code(typ))<<","<<std::fixed<<std::setprecision(7)<<Store::quant(lat)/10000000.<<","<<Store::quant(lon)/10000000.<<","<<csvQuote(name)<<"\n";
     if(tags&&db){if(generatedName)tag(*tags,"bgm:generated_name","yes");tag(*tags,"garmin:mapset",m.name);db->addPoi(lon,lat,*tags);}
  };

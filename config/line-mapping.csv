@@ -1,51 +1,51 @@
 code,source_count,legend_bg,legacy_color,osm_way_tags,route_mode,osmc_symbol,network,route_confidence,priority,note
-0x10e1f,237835,Неустановена линейна декорация,#000000,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10f12,217991,Неустановена линейна декорация,#e6e6e6,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10f16,36027,Неустановена линейна декорация,#e6e6e6,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e0b,15148,Неустановена линейна декорация,#000000,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10f17,10965,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#ff3041,,relation,red:white:red_bar,lwn,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e13,10607,Неустановена линейна декорация,#000000,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e12,8662,Неустановена линейна декорация,#000000,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10f14,8475,Неустановена линейна декорация,#000000,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10f11,6436,Неустановена линейна декорация,#000000,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10f0a,6231,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#ff0000,,relation,red:white:red_bar,lwn,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e0a,4347,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#0030ff,,relation,blue:white:blue_bar,lwn,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10f00,4197,Неустановена линейна декорация,#000000,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10f0f,4098,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#399500,,relation,green:white:green_bar,lwn,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e11,3926,Неустановена линейна декорация,#000000,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e05,3011,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#ffff00,,relation,yellow:white:yellow_bar,lwn,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e0c,2375,Неустановена линейна декорация,#000000,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e1c,2045,Неустановена линейна декорация,#ffffff,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10f13,1575,Неустановена линейна декорация,#000000,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e19,1469,Неустановена линейна декорация,#525252,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e09,1074,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#0030ff,,relation,blue:white:blue_bar,lwn,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e04,1048,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#ffff00,,relation,yellow:white:yellow_bar,lwn,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e16,636,Неустановена линейна декорация,#000000,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10504,591,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#bd3041,,relation,red:white:red_bar,lwn,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10f0e,488,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#399500,,relation,green:white:green_bar,lwn,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10401,394,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#bd3041,,relation,red:white:red_bar,lwn,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e1b,368,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#ff0000,,relation,red:white:red_bar,lwn,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10602,354,Неустановена линейна декорация,#777777,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e1d,327,Неустановена линейна декорация,#ffffff,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e18,292,Неустановена линейна декорация,#414141,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e0d,267,Неустановена линейна декорация,#000000,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10108,232,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#bd3041,,relation,red:white:red_bar,lwn,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e1a,205,Неустановена линейна декорация,#ffffff,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e03,199,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#ffff00,,relation,yellow:white:yellow_bar,lwn,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e15,184,Неустановена линейна декорация,#000000,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10f05,162,Неустановена линейна декорация,#7b3000,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e1e,162,Неустановена линейна декорация,#000000,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e08,119,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#0030ff,,relation,blue:white:blue_bar,lwn,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e17,110,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#ff0000,,relation,red:white:red_bar,lwn,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e14,109,Неустановена линейна декорация,#000000,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10f15,98,Неустановена линейна декорация,#000000,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10f04,93,Неустановена линейна декорация,#7b3000,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10606,78,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#bd3041,,relation,red:white:red_bar,lwn,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e02,60,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#ffff00,,relation,yellow:white:yellow_bar,lwn,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e0e,56,Неустановена линейна декорация,#000000,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10402,47,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#bd3041,,relation,red:white:red_bar,lwn,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10f03,9,Неустановена линейна декорация,#7b3000,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10f01,4,Неустановена линейна декорация,#7b3000,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10e0f,4,Неустановена линейна декорация,#000000,,preserve,,lwn,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10503,3,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#bd3041,,relation,red:white:red_bar,lwn,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
-0x10403,3,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#bd3041,,relation,red:white:red_bar,lwn,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e1f,237835,Неустановена линейна декорация,#000000,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10f12,217991,Неустановена линейна декорация,#e6e6e6,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10f16,36027,Неустановена линейна декорация,#e6e6e6,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e0b,15148,Неустановена линейна декорация,#000000,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10f17,10965,Червена линейна декорация (непотвърден маршрут),#ff3041,,preserve,,,color_only,normal,"Sofia extract produced 133 hiking components from this symbol alone, 110 with one member. Preserve source geometry and color pending trail verification."
+0x10e13,10607,Неустановена линейна декорация,#000000,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e12,8662,Неустановена линейна декорация,#000000,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10f14,8475,Неустановена линейна декорация,#000000,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10f11,6436,Неустановена линейна декорация,#000000,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10f0a,6231,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#ff0000,,relation,red:white:red_bar,,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e0a,4347,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#0030ff,,relation,blue:white:blue_bar,,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10f00,4197,Неустановена линейна декорация,#000000,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10f0f,4098,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#399500,,relation,green:white:green_bar,,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e11,3926,Неустановена линейна декорация,#000000,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e05,3011,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#ffff00,,relation,yellow:white:yellow_bar,,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e0c,2375,Неустановена линейна декорация,#000000,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e1c,2045,Неустановена линейна декорация,#ffffff,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10f13,1575,Неустановена линейна декорация,#000000,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e19,1469,Неустановена линейна декорация,#525252,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e09,1074,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#0030ff,,relation,blue:white:blue_bar,,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e04,1048,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#ffff00,,relation,yellow:white:yellow_bar,,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e16,636,Неустановена линейна декорация,#000000,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10504,591,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#bd3041,,relation,red:white:red_bar,,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10f0e,488,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#399500,,relation,green:white:green_bar,,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10401,394,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#bd3041,,relation,red:white:red_bar,,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e1b,368,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#ff0000,,relation,red:white:red_bar,,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10602,354,Неустановена линейна декорация,#777777,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e1d,327,Неустановена линейна декорация,#ffffff,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e18,292,Неустановена линейна декорация,#414141,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e0d,267,Неустановена линейна декорация,#000000,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10108,232,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#bd3041,,relation,red:white:red_bar,,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e1a,205,Неустановена линейна декорация,#ffffff,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e03,199,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#ffff00,,relation,yellow:white:yellow_bar,,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e15,184,Неустановена линейна декорация,#000000,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10f05,162,Неустановена линейна декорация,#7b3000,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e1e,162,Неустановена линейна декорация,#000000,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e08,119,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#0030ff,,relation,blue:white:blue_bar,,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e17,110,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#ff0000,,relation,red:white:red_bar,,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e14,109,Неустановена линейна декорация,#000000,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10f15,98,Неустановена линейна декорация,#000000,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10f04,93,Неустановена линейна декорация,#7b3000,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10606,78,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#bd3041,,relation,red:white:red_bar,,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e02,60,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#ffff00,,relation,yellow:white:yellow_bar,,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e0e,56,Неустановена линейна декорация,#000000,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10402,47,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#bd3041,,relation,red:white:red_bar,,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10f03,9,Неустановена линейна декорация,#7b3000,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10f01,4,Неустановена линейна декорация,#7b3000,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10e0f,4,Неустановена линейна декорация,#000000,,preserve,,,unknown,terrain,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10503,3,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#bd3041,,relation,red:white:red_bar,,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path
+0x10403,3,"Туристическа линейна маркировка (цветът е потвърден, шарката не)",#bd3041,,relation,red:white:red_bar,,color_only,critical,Provisional symbol until verified against legend; overlay is NOT a routable path

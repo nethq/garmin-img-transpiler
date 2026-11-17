@@ -4,15 +4,15 @@ Never invent highway=path. Only attach where exact coordinate-node edge coverage
 and physical-way overrun <=10%; otherwise preserve original overlay member.
 """
 import argparse,collections,json,pathlib,xml.etree.ElementTree as ET
-from native_translate import mapping,tagdict,top_level_elements
+from native_translate import line_mapping,tagdict,top_level_elements
 
 def edges(refs):
  for a,b in zip(refs,refs[1:]):
   if a!=b:yield (a,b) if a<b else (b,a)
 
 def match(src,dst,line_cfg,report):
- candidates={c for c,r in mapping(line_cfg).items() if r.get('route_mode')=='relation'}
- overlay_refs={};lookup=collections.defaultdict(set)
+ candidates={c for c,r in line_mapping(line_cfg).items() if r.get('route_mode')=='relation'}
+ overlay_lengths={};lookup=collections.defaultdict(set)
  with open(src,'rb') as f:
   for e in top_level_elements(f):
    if e.tag=='way':
@@ -21,14 +21,14 @@ def match(src,dst,line_cfg,report):
      oid=int(e.get('id'))
      ns=[int(n.get('ref')) for n in e.findall('nd')]
      if len(ns)>=2:
-      overlay_refs[oid]=ns
+      overlay_lengths[oid]=len(ns)-1
       for edge in edges(ns):lookup[edge].add(oid)
     e.clear()
    elif e.tag in ('node','relation'):e.clear()
  matches=collections.defaultdict(collections.Counter);physical_len={};written=0
  with open(src,'rb') as f,open(dst,'w',encoding='utf-8') as out:
   out.write('<?xml version="1.0" encoding="UTF-8"?>\n<osm version="0.6" generator="garmin2osm-v0.92" upload="never">\n')
-  replaced={}; relations=0
+  replaced=None; relations=0
   for e in top_level_elements(f):
    if e.tag=='way':
     t=tagdict(e)
@@ -38,10 +38,11 @@ def match(src,dst,line_cfg,report):
      for edge in edges(ns):
       for oid in lookup.get(edge,()):matches[oid][pid]+=1
    elif e.tag=='relation':
-    if not replaced:
-     for oid,refs in overlay_refs.items():
-      nseg=max(1,len(refs)-1)
-      for pid,matched in matches.get(oid,{}).most_common():
+    if replaced is None:
+     replaced={}
+     for oid,counts in matches.items():
+      nseg=overlay_lengths[oid]
+      for pid,matched in counts.most_common():
        # Not allowed to extend a colored marking beyond its actual physical segment.
        if matched/nseg>=0.9 and physical_len.get(pid,10**9)<=nseg*1.1:
         replaced[oid]=pid;break
@@ -55,8 +56,8 @@ def match(src,dst,line_cfg,report):
       else:m.set('ref',ref);seen.add(ref)
    out.write(ET.tostring(e,encoding='unicode')+'\n');written+=1;e.clear()
   out.write('</osm>\n')
-  summary={'candidate_overlay_ways':len(overlay_refs),'attached_to_existing_highway':len(replaced),
-   'unmatched_overlay_members':len(overlay_refs)-len(replaced),'hiking_relations':relations,
+  summary={'candidate_overlay_ways':len(overlay_lengths),'attached_to_existing_highway':len(replaced or {}),
+   'unmatched_overlay_members':len(overlay_lengths)-len(replaced or {}),'hiking_relations':relations,
    'policy':'Attach only with >=90% shared physical segments and <=10% physical overrun. No invented routable ways.'}
  pathlib.Path(report).write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
  return summary
